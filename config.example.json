@@ -1,0 +1,22 @@
+{
+  "discord": {
+    "token": "",
+    "monitor_channel_ids": [111111111, 222222222],
+    "allow_guilds": [],
+    "response_probability": 0.1,
+    "conversation_timeout_seconds": 300
+  },
+  "session": {
+    "max_messages": 100
+  },
+  "providers": {
+    "openrouter": {
+      "api_key": ""
+    }
+  },
+  "agent": {
+    "model": "qwen3-235b",
+    "enable_korean_review": true,
+    "korean_review_model": null
+  }
+}

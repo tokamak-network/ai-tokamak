@@ -1,0 +1,33 @@
+2026-02-07 03:49:47.281 | INFO     | tokamak.__main__:_generate:117 - Question: 스테이킹 방법 알려주세요
+2026-02-07 03:49:47.281 | INFO     | tokamak.__main__:_generate:118 - Generating response...
+2026-02-07 03:49:47.282 | DEBUG    | tokamak.agent.loop:run:164 - AgentLoop: 2 messages, 1 tools
+2026-02-07 03:49:57.775 | DEBUG    | tokamak.agent.loop:_review_korean_quality:135 - Korean review applied: 476 -> 416 chars
+2026-02-07 03:49:57.775 | DEBUG    | tokamak.agent.loop:run:217 - AgentLoop response: **$TOKAMAK 스테이킹 방법** (Staking V2 커뮤니티 버전)
+
+**공식 인터페이스 접속**  
+🔗 https://staking-community-version.ver...
+
+============================================================
+**$TOKAMAK 스테이킹 방법** (Staking V2 커뮤니티 버전)
+
+**공식 인터페이스 접속**  
+🔗 https://staking-community-version.vercel.app
+
+**지갑 연결**  
+MetaMask 등 웹3 지갑 연결
+
+**스테이킹 선택**  
+- TON 또는 WTON 선택하여 스테이킹  
+- DAO 후보자 지정 (거버넌스 참여)
+
+**보상 수령**  
+- 스테이킹 보상으로 **seigniorage 리워드** 획득  
+- 네트워크 보안에 기여
+
+✅ **중요**: 2025년 8월 출시된 커뮤니티 버전으로, 중앙화된 백엔드 없이 완전히 탈중앙화 운영  
+❌ 기존 staking.tokamak.network은 더 이상 사용 불가
+
+📖 자세히: [공식 문서](https://docs.tokamak.network)
+============================================================
+
+Character count: 416/2000

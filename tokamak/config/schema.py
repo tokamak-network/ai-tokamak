@@ -1,0 +1,87 @@
+"""Configuration schema using Pydantic."""
+
+from pydantic import BaseModel, Field
+
+
+class DiscordConfig(BaseModel):
+    """Discord bot configuration."""
+
+    token: str = Field(description="Discord bot token")
+    monitor_channel_ids: list[int] = Field(
+        default_factory=list,
+        description="Channel IDs to monitor for conversations"
+    )
+    allow_guilds: list[int] = Field(
+        default_factory=list,
+        description="Guild IDs allowed (empty = all)"
+    )
+    response_probability: float = Field(
+        default=0.1,
+        ge=0.0,
+        le=1.0,
+        description="Probability of responding to non-mention messages (0.0-1.0)"
+    )
+    conversation_timeout_seconds: int = Field(
+        default=300,
+        description="Seconds before conversation timeout (default 5 min)"
+    )
+
+
+class SessionConfig(BaseModel):
+    """Session management configuration."""
+
+    max_messages: int = Field(
+        default=100,
+        description="Maximum messages to store per session"
+    )
+
+
+class ProviderConfig(BaseModel):
+    """Single provider configuration."""
+
+    api_key: str = Field(description="API key for the provider")
+    api_base: str | None = Field(default=None, description="Custom API base URL")
+
+
+class ProvidersConfig(BaseModel):
+    """LLM providers configuration."""
+
+    openrouter: ProviderConfig | None = None
+    anthropic: ProviderConfig | None = None
+    openai: ProviderConfig | None = None
+
+
+class AgentConfig(BaseModel):
+    """Agent configuration."""
+
+    model: str = Field(
+        default="anthropic/claude-sonnet-4",
+        description="LLM model to use"
+    )
+    max_tokens: int = Field(
+        default=4096,
+        description="Maximum tokens in response"
+    )
+    temperature: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=2.0,
+        description="Sampling temperature"
+    )
+    enable_korean_review: bool = Field(
+        default=True,
+        description="Enable Korean language quality review"
+    )
+    korean_review_model: str | None = Field(
+        default=None,
+        description="Model for Korean review (defaults to agent model if not specified)"
+    )
+
+
+class Config(BaseModel):
+    """Root configuration."""
+
+    discord: DiscordConfig
+    session: SessionConfig = Field(default_factory=SessionConfig)
+    providers: ProvidersConfig = Field(default_factory=ProvidersConfig)
+    agent: AgentConfig = Field(default_factory=AgentConfig)

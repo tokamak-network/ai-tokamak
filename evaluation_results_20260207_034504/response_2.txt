@@ -1,0 +1,35 @@
+**$TOKAMAK**(TON) 토큰은 다음과 같은 거래소에서 구매할 수 있습니다.
+
+**💼 중앙화 거래소 (CEX)**
+
+**한국 거래소**:  
+• 업비트 (Upbit)  
+• 빗썸 (Bithumb)  
+• 코인원 (Coinone)  
+• 고팍스 (Gopax)
+
+**글로벌 거래소**:  
+• XT  
+• WEEX  
+• Biconomy  
+• Digifinex
+
+> 💡 거래 페어 및 가용성은 각 거래소에서 직접 확인하세요.
+
+**🔄 탈중앙화 거래소 (DEX)**
+
+- **TON은 직접 거래 불가** → 보안상 이유로 **WTON**으로 변환 후 거래 필요  
+- **순서**:  
+  1. TON → WTON으로 변환 (Etherscan 계약 인터페이스 사용)  
+  2. Uniswap 등에서 WTON 거래  
+  3. 필요 시 WTON → TON으로 다시 변환
+
+🔗 변환 및 확인: [Etherscan TON 토큰](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)
+
+**📊 가격 확인**
+
+- 공식 대시보드: [tokamak.network/about/price](https://www.tokamak.network/about/price)  
+- CoinGecko, CoinMarketCap에서도 확인 가능
+
+구체적인 구매 가이드는 공식 문서에서 확인하세요:  
+🔗 [TON 구매 가이드](https://docs.tokamak.network/home/information/get-ton)

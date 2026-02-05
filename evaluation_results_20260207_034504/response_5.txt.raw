@@ -1,0 +1,19 @@
+2026-02-07 03:52:53.718 | INFO     | tokamak.__main__:_generate:117 - Question: Tokamak Rollup Hub는 언제 출시되나요?
+2026-02-07 03:52:53.718 | INFO     | tokamak.__main__:_generate:118 - Generating response...
+2026-02-07 03:52:53.718 | DEBUG    | tokamak.agent.loop:run:164 - AgentLoop: 2 messages, 1 tools
+2026-02-07 03:52:57.913 | DEBUG    | tokamak.agent.loop:_review_korean_quality:135 - Korean review applied: 145 -> 144 chars
+2026-02-07 03:52:57.914 | DEBUG    | tokamak.agent.loop:run:217 - AgentLoop response: Tokamak Rollup Hub(TRH) 메인넷은 **2026년 1분기(Q1) 출시 예정**입니다.
+
+현재 Devnet이 운영 중이며, 메인넷은 내부 테스트를 진행 중입니다.
+
+...
+
+============================================================
+Tokamak Rollup Hub(TRH) 메인넷은 **2026년 1분기(Q1) 출시 예정**입니다.
+
+현재 Devnet이 운영 중이며, 메인넷은 내부 테스트를 진행 중입니다.
+
+🔗 자세한 정보: https://rolluphub.tokamak.network/
+============================================================
+
+Character count: 144/2000

@@ -1,0 +1,27 @@
+2026-02-07 04:10:45.313 | INFO     | tokamak.__main__:_generate:117 - Question: 토크막 네트워크가 뭔가요?
+2026-02-07 04:10:45.313 | INFO     | tokamak.__main__:_generate:118 - Generating response...
+2026-02-07 04:10:45.314 | DEBUG    | tokamak.agent.loop:run:178 - AgentLoop: 2 messages, 1 tools
+2026-02-07 04:10:58.052 | DEBUG    | tokamak.agent.loop:_review_korean_quality:149 - Korean review applied: 464 -> 455 chars
+2026-02-07 04:10:58.052 | DEBUG    | tokamak.agent.loop:run:231 - AgentLoop response: Tokamak Network는 사용자 맞춤형 이더리움 레이어2(L2) 네트워크를 **온디맨드로 배포**할 수 있는 플랫폼입니다.
+
+**핵심 기능**:
+- **모듈형 아키텍처**: ...
+
+============================================================
+Tokamak Network는 사용자 맞춤형 이더리움 레이어2(L2) 네트워크를 **온디맨드로 배포**할 수 있는 플랫폼입니다.
+
+**핵심 기능**:
+- **모듈형 아키텍처**: 게임, DeFi, NFT 등 다양한 용도에 최적화된 L2 체인을 쉽게 구축
+- **확장성**: 이더리움의 보안을 유지하면서 트랜잭션 속도를 높이고 비용을 절감
+- **L2 간 상호운용성**: 서로 다른 L2 체인이 직접 통신 가능 (L1을 거치지 않음)
+- **보안 인프라**: TON 토큰 스테이킹을 통한 검증과 보호
+
+**주요 프로젝트**:  
+Tokamak Rollup Hub(TRH)를 통해 누구나 자신의 앱 전용 L2를 쉽게 만들 수 있습니다.  
+(메인넷은 2026년 1분기 출시 예정)
+
+🔗 [공식 문서](https://docs.tokamak.network)  
+🌐 [웹사이트](https://tokamak.network)
+============================================================
+
+Character count: 455/2000
