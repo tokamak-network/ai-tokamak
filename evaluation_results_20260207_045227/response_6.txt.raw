@@ -1,0 +1,23 @@
+2026-02-07 05:00:45.021 | INFO     | tokamak.__main__:_generate:117 - Question: DAO에 참여하려면 어떻게 해야 하나요?
+2026-02-07 05:00:45.021 | INFO     | tokamak.__main__:_generate:118 - Generating response...
+2026-02-07 05:00:45.021 | DEBUG    | tokamak.agent.loop:run:178 - AgentLoop: 2 messages, 1 tools
+2026-02-07 05:00:49.177 | DEBUG    | tokamak.agent.loop:_review_korean_quality:149 - Korean review applied: 446 -> 446 chars
+2026-02-07 05:00:49.177 | DEBUG    | tokamak.agent.loop:run:231 - AgentLoop response: DAO에 참여하려면 다음 단계를 따르세요:
+
+1. **$TOKAMAK(TON) 토큰 보유**: DAO 투표 권한을 위해 TON 또는 WTON 토큰이 필요합니다.  
+2. **스테이...
+
+============================================================
+DAO에 참여하려면 다음 단계를 따르세요:
+
+1. **$TOKAMAK(TON) 토큰 보유**: DAO 투표 권한을 위해 TON 또는 WTON 토큰이 필요합니다.  
+2. **스테이킹**: [커뮤니티 스테이킹 인터페이스](https://staking-community-version.vercel.app/)에 지갑을 연결하고 토큰을 스테이킹하세요.  
+3. **DAO 후보 선택**: 스테이킹 시 지지할 DAO 후보를 선택하면 거버넌스 참여가 시작됩니다.  
+4. **TIP 투표/제안**: Tokamak Improvement Proposals(TIP)에 투표하거나 제안할 수 있습니다.
+
+✅ DAO V2는 2025년 9월부터 완전히 탈중앙화되어 운영 중입니다. 중앙화된 백엔드는 없습니다.
+
+🔗 [자세한 가이드](https://docs.tokamak.network/home/service-guide)
+============================================================
+
+Character count: 446/2000

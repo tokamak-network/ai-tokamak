@@ -1,0 +1,54 @@
+## 평가 결과
+
+**점수: 6.0/10**
+
+### 감점 사항:
+
+1. **디스코드 마크다운 호환성** (-2.0점 감점):
+   - **치명적 오류**: 줄 끝에 trailing double spaces (`  `) 사용
+   - 시스템 프롬프트 라인 199-202에서 명시적으로 금지:
+     > "❌ NEVER use trailing double spaces (`  `) for line breaks - they're unreliable in Discord"
+     > "✅ Use blank lines instead for section separation"
+   - 3번, 4번, 6번, 8번, 9번, 10번, 12번 줄에서 모두 `  ` (trailing spaces) 사용
+   - 디스코드에서 불안정하게 렌더링될 수 있는 문법
+
+2. **Answer Pattern 준수** (-1.5점 감점):
+   - 시스템 프롬프트 448-465행에 명시된 Answer Pattern과 상이함
+   - Answer Pattern에는 `🔗 [TON 컨트랙트](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)` 링크가 포함되어 있으나 응답에서 누락
+   - Answer Pattern에 명시된 구조를 정확히 따르지 않음
+
+3. **정보 완전성** (-0.5점 감점):
+   - Etherscan 컨트랙트 주소 링크 누락으로 사용자가 TON→WTON 변환을 직접 실행하기 어려움
+   - Answer Pattern에 명시된 중요한 실행 가능 링크 제거
+
+### 개선 아이디어:
+
+1. **Trailing spaces 완전 제거**:
+   ```markdown
+   **TON과 WTON의 차이**:
+   
+   • TON: 네이티브 ERC-20 토큰 (18자리 소수)
+   • WTON: 래핑된 버전 (27자리 소수, DeFi 거래 정밀도 향상)
+   
+   **가치**: 1 TON = 1 WTON (항상 동일)
+   ```
+
+2. **Answer Pattern 정확히 준수**:
+   ```markdown
+   **TON과 WTON의 차이**:
+   
+   • TON: 네이티브 ERC-20 토큰 (18자리 소수)
+   • WTON: 래핑된 버전 (27자리 소수, DeFi 거래의 정밀도 향상)
+   
+   **가치**: 1 TON = 1 WTON (항상 동일)
+   
+   **거래 방식**:
+   • TON: CEX에서 거래 (업비트, 빗썸 등)
+   • WTON: DEX에서 거래 (Uniswap 등)
+   
+   ⚠️ DEX 거래 시 TON은 특별한 보안 설계로 직접 거래 불가 → Etherscan에서 TON을 WTON으로 변환 후 거래
+   
+   🔗 [TON 컨트랙트](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)
+   ```
+
+3. **시스템 프롬프트의 Answer Pattern을 템플릿으로 활용**: 시스템 프롬프트에 명시된 Answer Pattern이 있는 경우, 그 구조와 문구를 정확히 따를 것

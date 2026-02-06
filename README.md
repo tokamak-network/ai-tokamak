@@ -41,6 +41,22 @@ tokamak run
 tokamak test-discord
 ```
 
+## Deployment
+
+### Railway Deployment
+
+Deploy to Railway with environment variables (recommended for production):
+
+1. Push your code to GitHub
+2. Create a new Railway project and connect your repo
+3. Set required environment variables:
+   - `DISCORD_TOKEN`: Your Discord bot token
+   - `OPENROUTER_API_KEY`: Your OpenRouter API key
+   - `MONITOR_CHANNEL_IDS`: Comma-separated channel IDs (e.g., `123456,789012`)
+4. Railway will automatically deploy using `railway.toml` configuration
+
+See [RAILWAY_DEPLOY.md](./RAILWAY_DEPLOY.md) for detailed deployment instructions.
+
 ## License
 
 MIT

@@ -125,3 +125,427 @@ $TOKAMAK 스테이킹 방법:
 
 ---
 
+## 질문 3
+
+**질문**: TON 토큰은 어디서 구매할 수 있나요?
+
+**응답**:
+```
+$TOKAMAK(TON) 토큰 구매처:
+
+**중앙화 거래소**  
+• 한국: 업비트, 빗썸, 코인원, 고팍스  
+• 글로벌: XT, WEEX, Biconomy, Digifinex  
+
+**탈중앙화 거래소**  
+TON은 직접 거래가 불가능하며, TON을 WTON으로 변환한 후 Uniswap 등에서 거래 가능  
+
+🔗 [TON 구매 가이드](https://docs.tokamak.network/home/information/get-ton)  
+🔗 [Etherscan 변환](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)
+```
+
+**평가 결과**:
+I'll evaluate the AI response for the question "TON 토큰은 어디서 구매할 수 있나요?" (Where can I buy TON tokens?)
+
+Let me analyze the response against the evaluation criteria:
+
+## Evaluation
+
+**점수: 8.0/10**
+
+**감점 사항:**
+- **디스코드 마크다운 호환성** (1.0점 감점): `####` 헤더 문법이 사용되지는 않았으나, 응답에서 `**중앙화 거래소**`와 `**탈중앙화 거래소**`가 별도 줄에 있어 디스코드에서 헤더처럼 보일 수 있음. 하지만 시스템 프롬프트의 권장 예시와 비교하면 섹션 구분이 명확하지 않음.
+- **한국어 자연스러움** (1.0점 감점): "TON을 WTON으로 변환한 후"라는 표현이 약간 기계적. "TON을 먼저 WTON으로 바꾼 다음" 또는 "TON → WTON 변환 후"가 더 자연스러움.
+
+**잘된 점:**
+- ✅ 정보 정확성: 시스템 프롬프트의 정보와 완벽히 일치 (CEX 목록, DEX 거래 불가, WTON 변환 필요)
+- ✅ 링크 처리: 모든 링크가 `[텍스트](URL)` 형식으로 올바르게 작성됨 (bare URL 없음)
+- ✅ 이모지 사용: 적절하게 2개만 사용 (🔗)
+- ✅ 간결성: 핵심 정보만 포함하여 2000자 제한 준수
+- ✅ 번역 품질: "그", "그녀" 같은 어색한 대명사 없음
+
+**개선 아이디어:**
+
+1. **섹션 구분 개선**: 시스템 프롬프트의 권장 패턴에 따라 섹션 사이 빈 줄 추가
+   ```markdown
+   $TOKAMAK(TON) 토큰 구매처:
+   
+   **중앙화 거래소 (CEX)**
+   • 한국: 업비트, 빗썸, 코인원, 고팍스
+   • 글로벌: XT, WEEX, Biconomy, Digifinex
+   
+   **탈중앙화 거래소 (DEX)**
+   TON은 직접 거래 불가. TON → WTON 변환 후 Uniswap 등에서 거래
+   
+   🔗 [TON 구매 가이드](https://docs.tokamak.network/home/information/get-ton)
+   🔗 [Etherscan 변환](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)
+   ```
+
+2. **표현 자연스럽게 개선**: "변환한 후"를 화살표 기호로 시각화하여 더 직관적으로 만들기
+   ```markdown
+   TON은 직접 거래 불가 → TON을 WTON으로 변환 후 Uniswap 등에서 거래
+   ```
+
+3. **시스템 프롬프트 예시와의 일관성**: 프롬프트의 "Answer Pattern"과 완벽히 일치시키기 위해 "(CEX)" 같은 약어 괄호 포함 고려
+
+전반적으로 매우 우수한 응답이며, 정보 정확성과 링크 처리가 완벽합니다. 마크다운 포맷팅과 자연스러운 한국어 표현에서 약간의 개선 여지가 있습니다.
+
+---
+
+## 질문 4
+
+**질문**: TON과 WTON의 차이가 뭔가요?
+
+**응답**:
+```
+**TON과 WTON의 차이**:
+
+- **TON**: 네이티브 ERC-20 토큰 (18자리 소수)
+- **WTON**: 래핑된 버전 (27자리 소수, DeFi 거래 정밀도 향상)
+
+**가치**: 1 TON = 1 WTON (항상 동일)
+
+**거래 방식**:
+- **TON**: CEX에서 거래 (업비트, 빗썸 등)
+- **WTON**: DEX에서 거래 (Uniswap 등)
+
+⚠️ TON은 특별한 보안 설계로 인해 DEX에서 직접 거래 불가 → Etherscan에서 TON을 WTON으로 변환 후 거래
+
+🔗 [TON 컨트랙트](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)
+```
+
+**평가 결과**:
+I'll evaluate the AI response against the system prompt requirements.
+
+Looking at the response for "TON과 WTON의 차이가 뭔가요?", let me assess it against the evaluation criteria:
+
+## Evaluation
+
+**점수: 9.0/10**
+
+**감점 사항:**
+- [디스코드 마크다운 호환성] (1.0점 감점): 응답에 문제가 없지만, 시스템 프롬프트의 예시 패턴과 약간의 차이가 있음. 시스템 프롬프트는 섹션을 더 명확히 구분하는 패턴을 제시함
+
+**개선 아이디어:**
+- 섹션 구분을 더 명확하게: 시스템 프롬프트의 예시처럼 "**거래 방식**:" 다음에 하위 항목들을 들여쓰기 없이 바로 시작하는 것이 더 깔끔함
+- 응답 길이 최적화: 현재 응답은 약 350자로 적절하지만, 핵심 정보 우선 제공 원칙에 따라 "가치" 정보를 더 앞쪽으로 배치 가능
+- 링크 텍스트 개선: "[TON 컨트랙트]" 대신 "[Etherscan에서 TON/WTON 변환하기]" 같이 더 구체적인 설명 사용
+
+**강점:**
+- ✅ 디스코드 지원 마크다운만 사용 (헤더 문법 없음, 불릿 포인트 적절)
+- ✅ 자연스러운 한국어 표현 ("특별한 보안 설계로 인해")
+- ✅ 정확한 정보 전달 (시스템 프롬프트의 내용과 완벽히 일치)
+- ✅ 적절한 이모지 사용 (⚠️, 🔗만 사용)
+- ✅ 링크 임베드 방지 형식 사용
+- ✅ 간결하고 핵심 정보 우선 제공
+- ✅ 어색한 대명사 번역 없음
+
+전반적으로 매우 우수한 응답이며, 시스템 프롬프트의 가이드라인을 잘 따르고 있습니다.
+
+---
+
+## 질문 5
+
+**질문**: DEX에서 TON을 거래할 수 있나요?
+
+**응답**:
+```
+❌ TON은 특별한 보안 설계로 인해 DEX에서 직접 거래가 불가능합니다.
+
+**거래 방법**:
+1. TON → WTON 변환: [Etherscan](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)에서 변환  
+2. WTON 거래: Uniswap 등 DEX에서 거래  
+3. 필요시 재변환: WTON → TON
+
+💡 WTON은 TON과 1:1로 교환 가능한 래핑 토큰이며, DeFi 서비스 이용에 적합합니다.
+
+🔗 [공식 가이드](https://docs.tokamak.network/home/information/get-ton)
+```
+
+**평가 결과**:
+Based on my evaluation of the AI response against the system prompt guidelines:
+
+---
+
+**점수: 9.5/10**
+
+**감점 사항:**
+- [한국어 자연스러움] (0.5점 감점): "DeFi 서비스 이용에 적합합니다"라는 표현이 약간 딱딱함. "DeFi 거래에 사용됩니다" 또는 "DeFi 호환용 래핑 토큰입니다"가 더 자연스러움
+
+**개선 아이디어:**
+- 8번 라인을 "💡 WTON은 TON과 1:1 가치이며 DeFi 호환용 래핑 토큰입니다."로 변경 (시스템 프롬프트 489라인 패턴과 일치)
+- 4-6번 라인의 trailing 공백 제거 (일관성 향상)
+
+**긍정적인 측면:**
+- ✅ 디스코드 마크다운 완벽 호환 (헤더 문법 없음, 지원되는 마크다운만 사용)
+- ✅ 링크가 적절하게 `[텍스트](URL)` 형식으로 포맷됨 (bare URL 없음)
+- ✅ 정보가 시스템 프롬프트의 지식 베이스와 100% 일치 (484-496라인 참조)
+- ✅ 간결하고 단계별 설명이 명확함 (2000자 제한 준수)
+- ✅ 이모지 사용이 적절함 (❌, 💡, 🔗 - 핵심 정보 강조용)
+- ✅ 자연스러운 한국어 (대명사 번역 오류 없음)
+
+전반적으로 매우 우수한 응답입니다.
+
+---
+
+## 질문 6
+
+**질문**: Tokamak Rollup Hub는 언제 출시되나요?
+
+**응답**:
+```
+Tokamak Rollup Hub(TRH) 메인넷은 **2026년 1분기**에 출시될 예정입니다.
+
+현재 Devnet이 운영 중이며, 개발자는 SDK를 통해 테스트 및 체인 구축이 가능합니다.
+
+🔗 [공식 문서](https://docs.tokamak.network)  
+🌐 [Rollup Hub 사이트](https://rolluphub.tokamak.network/)
+```
+
+**평가 결과**:
+I'll evaluate this AI response against the provided system prompt and criteria.
+
+## Analysis
+
+Looking at the evaluation prompt for question 6: "Tokamak Rollup Hub는 언제 출시되나요?" (When will Tokamak Rollup Hub launch?)
+
+**Generated Response:**
+```
+Tokamak Rollup Hub(TRH) 메인넷은 **2026년 1분기**에 출시될 예정입니다.
+
+현재 Devnet이 운영 중이며, 개발자는 SDK를 통해 테스트 및 체인 구축이 가능합니다.
+
+🔗 [공식 문서](https://docs.tokamak.network)  
+🌐 [Rollup Hub 사이트](https://rolluphub.tokamak.network/)
+```
+
+### Evaluation Against Criteria
+
+**1. Discord Markdown Compatibility (2.5/2.5):**
+- ✅ No unsupported header syntax (no `###` or `####`)
+- ✅ Uses `**bold**` correctly
+- ✅ Uses `🔗` emoji appropriately (within 2-3 limit)
+- ✅ Links use proper format `[text](URL)`
+- ✅ No tables, horizontal rules, or other unsupported markdown
+- **No issues found**
+
+**2. Translation Quality (2.0/2.5):**
+- ✅ No awkward pronouns like "그", "그녀", "그것"
+- ⚠️ Minor issue: "개발자는 SDK를 통해" could be more natural as "SDK로"
+- ✅ Overall natural Korean sentence structure
+- **Minor deduction: -0.5 points** for slightly formal/stiff phrasing
+
+**3. Information Accuracy (2.5/2.5):**
+- ✅ "2026년 1분기" matches system prompt (Q1 2026)
+- ✅ "Devnet이 운영 중" correct (Devnet: Live and operational)
+- ✅ Links are correct and match knowledge base
+- ✅ No false claims or speculation
+- **No issues found**
+
+**4. Korean Language Naturalness (2.0/2.5):**
+- ✅ Professional terminology used correctly
+- ⚠️ "출시될 예정입니다" is slightly formal/bureaucratic
+- ⚠️ Could be more conversational per Discord guidelines
+- ✅ Technical terms appropriate
+- **Minor deduction: -0.5 points** for tone being slightly too formal for Discord
+
+---
+
+## Evaluation Result
+
+**점수: 9.0/10**
+
+**감점 사항:**
+- [번역 품질] (0.5점 감점): "SDK를 통해" → "SDK로" 같은 더 간결한 표현 사용 가능
+- [한국어 자연스러움] (0.5점 감점): "출시될 예정입니다"가 약간 공식적/딱딱함. Discord 환경에 맞게 "출시 예정이에요" 또는 "나올 예정입니다" 같은 표현이 더 자연스러움
+
+**개선 아이디어:**
+- **더 자연스러운 톤**: "TRH 메인넷은 **2026년 1분기**에 나올 예정이에요." (현재보다 친근하고 대화체)
+- **더 간결한 표현**: "지금은 Devnet이 운영 중이고, SDK로 테스트 및 체인 구축이 가능해요."
+- **이모지 배치 최적화**: 현재 응답은 이모지 사용이 적절하나, 더 강조하고 싶다면 첫 줄에 "🚀 TRH 메인넷은..." 같은 형태도 고려 가능
+- **선택적 정보 추가**: 공간이 충분하므로 "궁금한 점 있으면 물어보세요!" 같은 후속 질문 유도 문구 추가 가능
+
+**Overall**: 정보는 정확하고 마크다운도 완벽하지만, Discord 커뮤니티 환경에 맞는 좀 더 친근한 톤을 사용하면 더 좋을 것 같습니다.
+
+---
+
+## 질문 7
+
+**질문**: Grant 프로그램에 어떻게 지원하나요?
+
+**응답**:
+```
+GranTON은 토큰막 네트워크 생태계 프로젝트를 지원하는 공식 그랜트 프로그램입니다.
+
+**지원 유형**:
+• 풀타임: USDT/USDC + TON 그랜트  
+• 파트타임: $TOKAMAK 스테이킹 보상
+
+🔗 [GranTON 공식 페이지](https://tokamak.notion.site/Tokamak-Network-Grant-Program-GranTON-f2384b458ea341a0987c7e73a909aa21)
+
+자세한 지원 방법과 요구사항은 공식 페이지에서 확인하세요!
+```
+
+**평가 결과**:
+점수: 7.5/10
+
+감점 사항:
+- [정보 정확성] (1.5점 감점): "파트타임: $TOKAMAK 스테이킹 보상"이라고 되어 있으나, 시스템 프롬프트에는 "Part-time positions: Earn $TOKAMAK rewards"로만 명시되어 있음. "스테이킹 보상"은 시스템 프롬프트에 명시되지 않은 정보로 오해의 소지가 있음. 정확히는 "$TOKAMAK 리워드 지급"이어야 함.
+- [번역 품질] (0.5점 감점): "토큰막"은 "토카막"의 오타로 보임. 브랜드명은 정확한 표기가 중요함.
+- [한국어 자연스러움] (0.5점 감점): "확인하세요!"는 다소 명령적인 느낌. "확인하실 수 있어요!" 또는 "확인해보세요!"가 더 부드러움.
+
+개선 아이디어:
+- "토큰막" → "토카막"으로 수정 (브랜드명 정확성)
+- "파트타임: $TOKAMAK 스테이킹 보상" → "파트타임: $TOKAMAK 리워드 지급" (시스템 프롬프트와 정확히 일치)
+- "확인하세요!" → "확인하실 수 있어요!" (더 부드러운 톤)
+- 시스템 프롬프트의 권장 답변 패턴과 비교하면, 전체적인 구조는 잘 따르고 있으나 세부 정보의 정확성 개선 필요
+
+---
+
+## 질문 8
+
+**질문**: Titan은 왜 종료됐나요?
+
+**응답**:
+```
+Titan L2는 2024년 12월 26일에 종료되었습니다.
+
+**종료 이유**:  
+Titan은 Tokamak의 첫 번째 L2 메인넷으로, 기술 검증을 목적으로 운영되었습니다. 축적된 모든 경험과 기술은 차세대 플랫폼인 **Tokamak Rollup Hub**(TRH)에 통합되었으며, 이제 TRH가 더 유연하고 강력한 L2 구축 플랫폼으로 그 역할을 이어갑니다.
+
+🎯 현재: TRH 메인넷 2026년 1분기 출시 예정
+
+🔗 [자세히 보기](https://docs.tokamak.network)
+```
+
+**평가 결과**:
+점수: 8.0/10
+
+감점 사항:
+- [디스코드 마크다운 호환성] (1.0점 감점): `**종료 이유**:` 다음에 2개의 공백과 함께 줄바꿈이 사용됨. 디스코드에서는 이 패턴(`  \n`)이 의도대로 작동하지 않을 수 있으며, 일반 줄바꿈이나 빈 줄이 더 안정적임
+- [정보 정확성] (1.0점 감점): "첫 번째 L2 메인넷"이라는 표현이 추가되었으나, 시스템 프롬프트의 예제에는 단순히 "첫 L2 메인넷"으로 되어 있음. 또한 "축적된 모든 경험과 기술"이라는 표현이 원문의 "얻은 모든 경험"보다 과장되어 있음
+
+개선 아이디어:
+- 마크다운 줄바꿈을 `  \n` 대신 빈 줄로 변경하여 디스코드 호환성 향상:
+  ```
+  **종료 이유**:
+
+  Titan은 Tokamak의 첫 L2 메인넷으로...
+  ```
+- 시스템 프롬프트의 예제 답변과 정확히 일치하도록 수정:
+  - "첫 번째 L2 메인넷" → "첫 L2 메인넷"
+  - "축적된 모든 경험과 기술" → "얻은 모든 경험"
+  - "기술 검증을 목적으로" → "기술 검증용으로"
+- 전체적으로 시스템 프롬프트에 제공된 Answer Pattern을 더 충실히 따를 것을 권장
+
+---
+
+## 질문 9
+
+**질문**: DAO는 어떻게 참여하나요?
+
+**응답**:
+```
+**Tokamak DAO 참여 방법**:
+
+1. **TON/WTON 보유**: $TOKAMAK 토큰 필요  
+2. **스테이킹**: [커뮤니티 버전](https://staking-community-version.vercel.app/)에서 지갑 연결 후 스테이킹  
+3. **DAO 후보 선택**: 지지할 후보를 선택해 거버넌스에 참여  
+4. **TIP 참여**: Tokamak 개선 제안(TIP)에 제안하거나 투표  
+
+✅ 2025년 9월부터 완전히 탈중앙화된 DAO V2 운영 중  
+🔗 [공식 문서](https://docs.tokamak.network/home/service-guide)
+```
+
+**평가 결과**:
+이 응답을 평가하겠습니다.
+
+점수: 8.5/10
+
+감점 사항:
+- [디스코드 마크다운 호환성] (0.5점 감점): 숫자 목록 항목 끝에 불필요한 공백 2개가 있음 (줄바꿈 문법으로 오해될 수 있으나, 디스코드에서는 정상 렌더링됨)
+- [한국어 자연스러움] (1.0점 감점): "지지할 후보를 선택해" 보다는 "지지할 후보 선택으로"가 더 자연스러움 (시스템 프롬프트의 예시 패턴 참조)
+
+개선 아이디어:
+- 숫자 목록 항목 끝의 trailing spaces 제거 (마크다운 줄바꿈 문법이 아니므로 불필요)
+- "지지할 후보를 선택해 거버넌스에 참여" → "지지할 후보 선택으로 거버넌스 참여"로 수정하여 시스템 프롬프트의 권장 패턴과 일치시키기
+- 전체적으로 시스템 프롬프트의 예시 응답 패턴(465-481번 줄)과 거의 동일하며 품질이 우수함
+
+**긍정적인 점**:
+- 디스코드 마크다운 문법 완벽 준수 (#### 헤더 미사용, 테이블 미사용)
+- 정보 정확성 100% (시스템 프롬프트 내용과 정확히 일치)
+- 링크 임베드 방지 처리 완료
+- 적절한 이모지 사용 (✅, 🔗)
+- 2000자 제한 준수 (약 250자)
+- 명확하고 단계적인 설명 구조
+
+---
+
+## 질문 10
+
+**질문**: L2 체인 간 통신은 어떻게 작동하나요?
+
+**응답**:
+```
+**Cross-Layer Message Protocol**을 통해 L2 체인끼리 직접 통신할 수 있습니다.
+
+L1(이더리움)을 거치지 않고 L2 체인 간에 메시지를 직접 주고받을 수 있어 속도가 빠르고 비용이 낮습니다. 보안은 Tokamak의 검증 메커니즘으로 유지됩니다.
+
+예: 게임 전용 L2와 DeFi 전용 L2가 컨트랙트를 통해 자산이나 데이터를 1:1로 직접 교환할 수 있습니다.
+
+🔗 [자세한 내용](https://docs.tokamak.network)
+```
+
+**평가 결과**:
+Looking at this evaluation request, I need to assess the Korean response about L2 chain communication against the provided criteria.
+
+Let me analyze the generated response:
+
+```
+**Cross-Layer Message Protocol**을 통해 L2 체인끼리 직접 통신할 수 있습니다.
+
+L1(이더리움)을 거치지 않고 L2 체인 간에 메시지를 직접 주고받을 수 있어 속도가 빠르고 비용이 낮습니다. 보안은 Tokamak의 검증 메커니즘으로 유지됩니다.
+
+예: 게임 전용 L2와 DeFi 전용 L2가 컨트랙트를 통해 자산이나 데이터를 1:1로 직접 교환할 수 있습니다.
+
+🔗 [자세한 내용](https://docs.tokamak.network)
+```
+
+## Evaluation
+
+**점수: 9.0/10**
+
+**감점 사항:**
+- [번역 품질] (0.5점 감점): "컨트랙트를 통해 1:1로 직접 교환"이라는 표현이 시스템 프롬프트의 예시 패턴("컨트랙트를 통해 1:1 교환")보다 약간 더 장황함
+- [한국어 자연스러움] (0.5점 감점): "L2 체인 간에 메시지를 직접 주고받을 수 있어"가 "L2 체인끼리 직접 메시지를 주고받을 수 있어"로 표현하면 더 자연스러움
+
+**강점:**
+- ✅ **디스코드 마크다운 호환성**: `#` 헤더를 사용하지 않고 `**볼드**` 처리로 대체, 링크 형식 완벽
+- ✅ **정보 정확성**: 시스템 프롬프트의 내용과 정확히 일치
+- ✅ **간결성**: 2000자 제한 내에서 핵심 정보만 전달
+- ✅ **구조**: 명확한 3단 구조 (설명 → 기술적 장점 → 구체적 예시)
+
+**개선 아이디어:**
+- "L2 체인 간에" → "L2 체인끼리" (일관성 있게 구어체 유지)
+- "컨트랙트를 통해 1:1로 직접 교환" → "컨트랙트를 통해 1:1 교환" (불필요한 "직접" 제거)
+- 시스템 프롬프트의 예시 패턴과 정확히 매칭되도록 문구 조정 고려
+
+---
+
+
+## 요약
+
+- **총 질문 수**: 10
+- **평균 점수**: 3.25/10
+
+### 점수 분포
+질문      1	**7.5**
+질문      2	8.5
+질문      3	**8.0**
+질문      4	**9.0**
+질문      5	**9.5**
+질문      6	**9.0**
+질문      7	7.5
+질문      8	8.0
+질문      9	8.5
+질문     10	**9.0**

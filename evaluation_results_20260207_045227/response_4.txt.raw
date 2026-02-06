@@ -1,0 +1,29 @@
+2026-02-07 04:57:53.099 | INFO     | tokamak.__main__:_generate:117 - Question: TON과 WTON의 차이가 뭔가요?
+2026-02-07 04:57:53.099 | INFO     | tokamak.__main__:_generate:118 - Generating response...
+2026-02-07 04:57:53.100 | DEBUG    | tokamak.agent.loop:run:178 - AgentLoop: 2 messages, 1 tools
+2026-02-07 04:57:56.998 | DEBUG    | tokamak.agent.loop:_review_korean_quality:149 - Korean review applied: 331 -> 330 chars
+2026-02-07 04:57:56.998 | DEBUG    | tokamak.agent.loop:run:231 - AgentLoop response: **TON과 WTON의 차이**:
+
+• TON: 네이티브 ERC-20 토큰 (18자리 소수)  
+• WTON: 래핑된 버전 (27자리 소수, DeFi 거래 정밀도 향상)  
+
+**...
+
+============================================================
+**TON과 WTON의 차이**:
+
+• TON: 네이티브 ERC-20 토큰 (18자리 소수)  
+• WTON: 래핑된 버전 (27자리 소수, DeFi 거래 정밀도 향상)  
+
+**가치**: 1 TON = 1 WTON (항상 동일)  
+
+**거래 방식**:  
+• TON: CEX에서 거래 (업비트, 빗썸 등)  
+• WTON: DEX에서 거래 (Uniswap 등)  
+
+⚠️ DEX 거래 시 TON은 특별한 보안 설계로 직접 거래 불가 → Etherscan에서 TON을 WTON으로 변환 후 거래  
+
+🔗 [TON/WTON 상세 가이드](https://docs.tokamak.network)
+============================================================
+
+Character count: 330/2000

@@ -1,0 +1,27 @@
+2026-02-07 04:55:04.964 | INFO     | tokamak.__main__:_generate:117 - Question: 스테이킹은 어떻게 하나요?
+2026-02-07 04:55:04.964 | INFO     | tokamak.__main__:_generate:118 - Generating response...
+2026-02-07 04:55:04.965 | DEBUG    | tokamak.agent.loop:run:178 - AgentLoop: 2 messages, 1 tools
+2026-02-07 04:55:08.179 | DEBUG    | tokamak.agent.loop:_review_korean_quality:149 - Korean review applied: 290 -> 290 chars
+2026-02-07 04:55:08.179 | DEBUG    | tokamak.agent.loop:run:231 - AgentLoop response: $TOKAMAK 스테이킹은 커뮤니티 버전 인터페이스를 통해 진행됩니다.
+
+🔗 https://staking-community-version.vercel.app
+
+**단계별 안내**:...
+
+============================================================
+$TOKAMAK 스테이킹은 커뮤니티 버전 인터페이스를 통해 진행됩니다.
+
+🔗 https://staking-community-version.vercel.app
+
+**단계별 안내**:
+• MetaMask 등 웹3 지갑 연결  
+• TON 또는 WTON 토큰 선택 후 스테이킹  
+• DAO 후보 선택 (거버넌스 참여)  
+• 스테이킹 보상 획득  
+
+✅ 2025년 8월 출시된 완전 탈중앙화 버전입니다. 중앙화 서버는 더 이상 사용되지 않습니다.
+
+📖 [자세한 가이드](https://docs.tokamak.network)
+============================================================
+
+Character count: 290/2000

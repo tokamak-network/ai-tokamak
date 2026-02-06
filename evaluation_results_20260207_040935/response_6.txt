@@ -1,0 +1,6 @@
+Tokamak Rollup Hub(TRH) 메인넷은 **2026년 1분기**에 출시될 예정입니다.
+
+현재 Devnet이 운영 중이며, 개발자는 SDK를 통해 테스트 및 체인 구축이 가능합니다.
+
+🔗 [공식 문서](https://docs.tokamak.network)  
+🌐 [Rollup Hub 사이트](https://rolluphub.tokamak.network/)

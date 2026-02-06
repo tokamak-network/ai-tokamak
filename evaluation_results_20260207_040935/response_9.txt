@@ -1,0 +1,9 @@
+**Tokamak DAO 참여 방법**:
+
+1. **TON/WTON 보유**: $TOKAMAK 토큰 필요  
+2. **스테이킹**: [커뮤니티 버전](https://staking-community-version.vercel.app/)에서 지갑 연결 후 스테이킹  
+3. **DAO 후보 선택**: 지지할 후보를 선택해 거버넌스에 참여  
+4. **TIP 참여**: Tokamak 개선 제안(TIP)에 제안하거나 투표  
+
+✅ 2025년 9월부터 완전히 탈중앙화된 DAO V2 운영 중  
+🔗 [공식 문서](https://docs.tokamak.network/home/service-guide)

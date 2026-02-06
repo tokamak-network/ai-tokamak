@@ -1,0 +1,23 @@
+2026-02-07 04:17:26.942 | INFO     | tokamak.__main__:_generate:117 - Question: DEX에서 TON을 거래할 수 있나요?
+2026-02-07 04:17:26.942 | INFO     | tokamak.__main__:_generate:118 - Generating response...
+2026-02-07 04:17:26.942 | DEBUG    | tokamak.agent.loop:run:178 - AgentLoop: 2 messages, 1 tools
+2026-02-07 04:17:37.433 | DEBUG    | tokamak.agent.loop:_review_korean_quality:149 - Korean review applied: 322 -> 339 chars
+2026-02-07 04:17:37.434 | DEBUG    | tokamak.agent.loop:run:231 - AgentLoop response: ❌ TON은 특별한 보안 설계로 인해 DEX에서 직접 거래가 불가능합니다.
+
+**거래 방법**:
+1. TON → WTON 변환: [Etherscan](https://ethersca...
+
+============================================================
+❌ TON은 특별한 보안 설계로 인해 DEX에서 직접 거래가 불가능합니다.
+
+**거래 방법**:
+1. TON → WTON 변환: [Etherscan](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)에서 변환  
+2. WTON 거래: Uniswap 등 DEX에서 거래  
+3. 필요시 재변환: WTON → TON
+
+💡 WTON은 TON과 1:1로 교환 가능한 래핑 토큰이며, DeFi 서비스 이용에 적합합니다.
+
+🔗 [공식 가이드](https://docs.tokamak.network/home/information/get-ton)
+============================================================
+
+Character count: 339/2000

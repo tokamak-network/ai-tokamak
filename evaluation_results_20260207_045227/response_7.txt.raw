@@ -1,0 +1,21 @@
+2026-02-07 05:02:11.243 | INFO     | tokamak.__main__:_generate:117 - Question: Titan L2는 왜 종료됐나요?
+2026-02-07 05:02:11.243 | INFO     | tokamak.__main__:_generate:118 - Generating response...
+2026-02-07 05:02:11.243 | DEBUG    | tokamak.agent.loop:run:178 - AgentLoop: 2 messages, 1 tools
+2026-02-07 05:02:14.375 | DEBUG    | tokamak.agent.loop:_review_korean_quality:149 - Korean review applied: 263 -> 273 chars
+2026-02-07 05:02:14.375 | DEBUG    | tokamak.agent.loop:run:231 - AgentLoop response: Titan L2는 2024년 12월 26일에 종료되었습니다.
+
+**종료 이유**:  
+Titan은 토카막의 첫 L2 메인넷으로, 기술 검증을 목적으로 운영되었습니다. 얻은 모든 경...
+
+============================================================
+Titan L2는 2024년 12월 26일에 종료되었습니다.
+
+**종료 이유**:  
+Titan은 토카막의 첫 L2 메인넷으로, 기술 검증을 목적으로 운영되었습니다. 얻은 모든 경험은 차세대 플랫폼인 **Tokamak Rollup Hub**(TRH)에 통합되었으며, 이제 TRH가 더 유연하고 강력한 L2 구축 플랫폼으로서 역할을 이어갑니다.
+
+🎯 **현재**: TRH 메인넷은 2026년 1분기 출시 예정입니다.
+
+🔗 [자세히 보기](https://docs.tokamak.network)
+============================================================
+
+Character count: 273/2000

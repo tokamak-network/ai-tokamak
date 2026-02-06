@@ -1,0 +1,23 @@
+2026-02-07 05:04:51.515 | INFO     | tokamak.__main__:_generate:117 - Question: Grant 프로그램에 어떻게 지원하나요?
+2026-02-07 05:04:51.515 | INFO     | tokamak.__main__:_generate:118 - Generating response...
+2026-02-07 05:04:51.515 | DEBUG    | tokamak.agent.loop:run:178 - AgentLoop: 2 messages, 1 tools
+2026-02-07 05:04:54.943 | DEBUG    | tokamak.agent.loop:_review_korean_quality:149 - Korean review applied: 278 -> 279 chars
+2026-02-07 05:04:54.943 | DEBUG    | tokamak.agent.loop:run:231 - AgentLoop response: GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 그랜트 프로그램입니다.
+
+**지원 유형**:  
+• 풀타임: USDT/USDC + TON 그랜트  
+• 파트타임: ...
+
+============================================================
+GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 그랜트 프로그램입니다.
+
+**지원 유형**:  
+• 풀타임: USDT/USDC + TON 그랜트  
+• 파트타임: $TOKAMAK 스테이킹 보상  
+
+🔗 [GranTON 공식 페이지](https://tokamak.notion.site/Tokamak-Network-Grant-Program-GranTON-f2384b458ea341a0987c7e73a909aa21)  
+
+자세한 지원 방법과 요구사항은 공식 페이지에서 확인하실 수 있어요!
+============================================================
+
+Character count: 279/2000

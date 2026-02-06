@@ -1,0 +1,44 @@
+I'll evaluate the AI response for the question "TON 토큰은 어디서 구매할 수 있나요?" (Where can I buy TON tokens?)
+
+Let me analyze the response against the evaluation criteria:
+
+## Evaluation
+
+**점수: 8.0/10**
+
+**감점 사항:**
+- **디스코드 마크다운 호환성** (1.0점 감점): `####` 헤더 문법이 사용되지는 않았으나, 응답에서 `**중앙화 거래소**`와 `**탈중앙화 거래소**`가 별도 줄에 있어 디스코드에서 헤더처럼 보일 수 있음. 하지만 시스템 프롬프트의 권장 예시와 비교하면 섹션 구분이 명확하지 않음.
+- **한국어 자연스러움** (1.0점 감점): "TON을 WTON으로 변환한 후"라는 표현이 약간 기계적. "TON을 먼저 WTON으로 바꾼 다음" 또는 "TON → WTON 변환 후"가 더 자연스러움.
+
+**잘된 점:**
+- ✅ 정보 정확성: 시스템 프롬프트의 정보와 완벽히 일치 (CEX 목록, DEX 거래 불가, WTON 변환 필요)
+- ✅ 링크 처리: 모든 링크가 `[텍스트](URL)` 형식으로 올바르게 작성됨 (bare URL 없음)
+- ✅ 이모지 사용: 적절하게 2개만 사용 (🔗)
+- ✅ 간결성: 핵심 정보만 포함하여 2000자 제한 준수
+- ✅ 번역 품질: "그", "그녀" 같은 어색한 대명사 없음
+
+**개선 아이디어:**
+
+1. **섹션 구분 개선**: 시스템 프롬프트의 권장 패턴에 따라 섹션 사이 빈 줄 추가
+   ```markdown
+   $TOKAMAK(TON) 토큰 구매처:
+   
+   **중앙화 거래소 (CEX)**
+   • 한국: 업비트, 빗썸, 코인원, 고팍스
+   • 글로벌: XT, WEEX, Biconomy, Digifinex
+   
+   **탈중앙화 거래소 (DEX)**
+   TON은 직접 거래 불가. TON → WTON 변환 후 Uniswap 등에서 거래
+   
+   🔗 [TON 구매 가이드](https://docs.tokamak.network/home/information/get-ton)
+   🔗 [Etherscan 변환](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)
+   ```
+
+2. **표현 자연스럽게 개선**: "변환한 후"를 화살표 기호로 시각화하여 더 직관적으로 만들기
+   ```markdown
+   TON은 직접 거래 불가 → TON을 WTON으로 변환 후 Uniswap 등에서 거래
+   ```
+
+3. **시스템 프롬프트 예시와의 일관성**: 프롬프트의 "Answer Pattern"과 완벽히 일치시키기 위해 "(CEX)" 같은 약어 괄호 포함 고려
+
+전반적으로 매우 우수한 응답이며, 정보 정확성과 링크 처리가 완벽합니다. 마크다운 포맷팅과 자연스러운 한국어 표현에서 약간의 개선 여지가 있습니다.

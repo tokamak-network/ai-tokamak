@@ -1,0 +1,25 @@
+2026-02-07 04:56:27.973 | INFO     | tokamak.__main__:_generate:117 - Question: TON 토큰은 어디서 살 수 있어요?
+2026-02-07 04:56:27.973 | INFO     | tokamak.__main__:_generate:118 - Generating response...
+2026-02-07 04:56:27.973 | DEBUG    | tokamak.agent.loop:run:178 - AgentLoop: 2 messages, 1 tools
+2026-02-07 04:56:31.670 | DEBUG    | tokamak.agent.loop:_review_korean_quality:149 - Korean review applied: 373 -> 360 chars
+2026-02-07 04:56:31.670 | DEBUG    | tokamak.agent.loop:run:231 - AgentLoop response: $TOKAMAK(TON) 토큰은 다음 거래소에서 구매할 수 있어요:
+
+**중앙화 거래소**  
+• 한국: 업비트, 빗썸, 코인원, 고팍스  
+• 글로벌: XT, WEEX, Bico...
+
+============================================================
+$TOKAMAK(TON) 토큰은 다음 거래소에서 구매할 수 있어요:
+
+**중앙화 거래소**  
+• 한국: 업비트, 빗썸, 코인원, 고팍스  
+• 글로벌: XT, WEEX, Biconomy, Digifinex  
+
+**탈중앙화 거래소**  
+TON은 직접 거래가 불가능합니다.  
+→ 먼저 [Etherscan](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)에서 TON을 WTON으로 변환한 후, Uniswap 등 DEX에서 거래하세요.  
+
+🔗 [TON 구매 가이드](https://docs.tokamak.network/home/information/get-ton)
+============================================================
+
+Character count: 360/2000
