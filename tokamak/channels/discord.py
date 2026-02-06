@@ -216,6 +216,13 @@ class DiscordChannel(BaseChannel):
         # Get or create session
         session = self.session_manager.get_or_create(session_key)
 
+        # Check if session was ended
+        is_mention = self._is_bot_mentioned(message)
+        if session.is_ended and (is_mention or random.random() < self.config.response_probability):
+            # Reactivate session for new conversation
+            session.reactivate()
+            logger.info(f"Reactivating session for {user_key}")
+
         # Always save user message to session (for context)
         session.add_message(
             role="user",
@@ -224,8 +231,11 @@ class DiscordChannel(BaseChannel):
             message_id=str(message.id),
         )
 
-        # Check if we should respond
-        is_mention = self._is_bot_mentioned(message)
+        # Check if we should respond (skip if session is ended)
+        if session.is_ended:
+            logger.debug(f"Session ended for {user_key}, not responding")
+            return
+
         if not self.should_respond(user_key, is_mention):
             logger.debug(f"Not responding to {user_key}")
             return
@@ -242,6 +252,12 @@ class DiscordChannel(BaseChannel):
                     # Format and send response using reply
                     formatted_response = format_discord_message(response)
                     await message.reply(formatted_response)
+
+                    # If session was ended, remove from active conversations
+                    if session.is_ended:
+                        if user_key in self._active_conversations:
+                            del self._active_conversations[user_key]
+                            logger.info(f"Removed {user_key} from active conversations (session ended)")
             except Exception as e:
                 logger.error(f"Error processing message: {e}")
         else:

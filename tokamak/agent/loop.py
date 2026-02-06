@@ -257,6 +257,14 @@ Original message:
                 if content:
                     content = content.strip()
 
+                    # Check for conversation end marker
+                    if "===END_CONVERSATION===" in content:
+                        logger.info("Conversation end requested by agent")
+                        session.end()
+                        # Return only the message before the marker
+                        content = content.split("===END_CONVERSATION===")[0].strip()
+                        return content if content else "대화를 종료합니다. 다시 대화하고 싶으시면 언제든지 말씀해주세요!"
+
                     # Apply Korean quality review if enabled
                     if not skip_korean_review:
                         content = await self._review_korean_quality(content)

@@ -19,6 +19,7 @@ class Session:
     updated_at: datetime = field(default_factory=datetime.now)
     metadata: dict[str, Any] = field(default_factory=dict)
     max_messages: int = 100
+    is_ended: bool = False
 
     def add_message(self, role: str, content: str, **kwargs: Any) -> None:
         """Add a message to the session."""
@@ -54,6 +55,16 @@ class Session:
     def clear(self) -> None:
         """Clear all messages in the session."""
         self.messages = []
+        self.updated_at = datetime.now()
+
+    def end(self) -> None:
+        """End the conversation session."""
+        self.is_ended = True
+        self.updated_at = datetime.now()
+
+    def reactivate(self) -> None:
+        """Reactivate an ended session for a new conversation."""
+        self.is_ended = False
         self.updated_at = datetime.now()
 
 
