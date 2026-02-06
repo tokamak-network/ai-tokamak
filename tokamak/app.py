@@ -106,7 +106,18 @@ class TokamakApp:
         Returns:
             Bot response or None
         """
-        return await self.agent.run_with_retry(session, content, max_retries=1)
+        # Detect if input is in English (no Korean characters)
+        skip_korean_review = not self.agent._detect_korean(content)
+
+        if skip_korean_review:
+            logger.debug("English input detected - Korean review will be skipped")
+
+        return await self.agent.run_with_retry(
+            session,
+            content,
+            max_retries=1,
+            skip_korean_review=skip_korean_review
+        )
 
     async def start(self) -> None:
         """Start all services."""

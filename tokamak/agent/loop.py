@@ -73,25 +73,38 @@ class AgentLoop:
 
 CRITICAL CHECKS:
 
-1. **Emoji Usage**: Limit to 2-3 emojis per response
+1. **Brand Name Accuracy - HIGHEST PRIORITY**:
+   - ✅ ALWAYS use "토카막 네트워크" when referring to Tokamak Network (NOT just "토카막")
+   - ❌ NEVER use typos: "토라막", "토큰막", "토까막"
+   - ✅ Verify spelling of ALL official names:
+     * "토카막 네트워크" (Tokamak Network)
+     * "Tokamak Rollup Hub" / "TRH"
+     * "GranTON"
+     * "Titan"
+   - ✅ **Token Symbols - NEVER translate**:
+     * ✅ CORRECT: "TON", "WTON", "$TOKAMAK"
+     * ❌ WRONG: "톤", "더블유톤", "토카막 토큰"
+   - 🚨 Brand name errors are UNACCEPTABLE - double-check every occurrence
+
+2. **Emoji Usage**: Limit to 2-3 emojis per response
    - BAD: `**🔍 핵심 특징**`, `**💼 중앙화 거래소**` (decorative emoji headers)
    - GOOD: `**핵심 특징**`, `🔗 **공식 리소스**` (emoji only for key info like links/warnings)
 
-2. **Terminology Consistency**:
+3. **Terminology Consistency**:
    - BAD: "전직(FT)", "시간제(PT)", "seigniorage 리워드"
    - GOOD: "풀타임" or "상근", "파트타임" or "비상근", "스테이킹 보상"
    - Remove unnecessary English in parentheses: "DAO 후보(Candidate)" → "DAO 후보"
 
-3. **Natural Korean Expressions**:
+4. **Natural Korean Expressions**:
    - BAD: "보안 기능으로 인해", "L2 ↔ L2 간", "자유롭게 전환 가능"
    - GOOD: "특별한 보안 설계로", "L2 체인끼리 직접", "컨트랙트를 통해 1:1 교환"
    - Omit pronouns naturally rather than literal "그", "그녀", "그것"
 
-4. **Section Header Style**:
+5. **Section Header Style**:
    - BAD: Multiple decorative emoji headers throughout response
    - GOOD: Simple bold `**제목**:` or single emoji `🔗 **제목**` for important sections only
 
-5. **Discord Markdown**: Remove unsupported syntax:
+6. **Discord Markdown**: Remove unsupported syntax:
    - BAD: `####` headers (Discord doesn't support these)
    - GOOD: Use **bold text** or blank lines for sections
 
@@ -153,6 +166,18 @@ Original message:
             logger.error(f"Korean review failed: {e}")
             return content
 
+    def _detect_korean(self, text: str) -> bool:
+        """
+        Detect if text contains Korean characters.
+
+        Simple heuristic: checks for Hangul characters (U+AC00 to U+D7AF).
+        Returns True if Korean detected, False otherwise.
+        """
+        for char in text:
+            if '\uAC00' <= char <= '\uD7AF':  # Hangul syllables
+                return True
+        return False
+
     def _build_messages(self, session: Session, current_message: str) -> list[dict]:
         """Build messages list for LLM call."""
         messages = [{"role": "system", "content": self.system_prompt}]
@@ -167,8 +192,15 @@ Original message:
         messages.append({"role": "user", "content": current_message})
         return messages
 
-    async def run(self, session: Session, message: str) -> str | None:
-        """Process a message with tool support."""
+    async def run(self, session: Session, message: str, skip_korean_review: bool = False) -> str | None:
+        """
+        Process a message with tool support.
+
+        Args:
+            session: User session
+            message: User message
+            skip_korean_review: If True, skip Korean review (for English inputs)
+        """
         if not message.strip():
             return None
 
@@ -224,10 +256,13 @@ Original message:
                 content = response.content
                 if content:
                     content = content.strip()
-                    
+
                     # Apply Korean quality review if enabled
-                    content = await self._review_korean_quality(content)
-                    
+                    if not skip_korean_review:
+                        content = await self._review_korean_quality(content)
+                    else:
+                        logger.debug("Skipping Korean review (English input detected)")
+
                     logger.debug(f"AgentLoop response: {content[:100]}...")
                     return content
                 return None
@@ -240,10 +275,16 @@ Original message:
             logger.error(f"AgentLoop error: {e}")
             return None
 
-    async def run_with_retry(self, session: Session, message: str, max_retries: int = 1) -> str | None:
+    async def run_with_retry(
+        self,
+        session: Session,
+        message: str,
+        max_retries: int = 1,
+        skip_korean_review: bool = False
+    ) -> str | None:
         """Process a message with retry on failure."""
         for attempt in range(max_retries + 1):
-            result = await self.run(session, message)
+            result = await self.run(session, message, skip_korean_review=skip_korean_review)
             if result:
                 return result
             if attempt < max_retries:

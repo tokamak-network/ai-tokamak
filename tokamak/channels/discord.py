@@ -239,9 +239,9 @@ class DiscordChannel(BaseChannel):
                 if response:
                     # Save bot response to session
                     session.add_message(role="assistant", content=response)
-                    # Format and send response
+                    # Format and send response using reply
                     formatted_response = format_discord_message(response)
-                    await message.channel.send(formatted_response)
+                    await message.reply(formatted_response)
             except Exception as e:
                 logger.error(f"Error processing message: {e}")
         else:
