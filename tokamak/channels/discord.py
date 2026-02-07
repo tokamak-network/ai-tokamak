@@ -37,6 +37,10 @@ def format_discord_message(content: str) -> str:
         text = match.group(1)
         url = match.group(2)
 
+        # If the link text is the URL itself, just return <url> once
+        if text.strip().rstrip('/') == url.strip().rstrip('/'):
+            return f'<{url}>'
+
         # Convert markdown link to Discord format: text <url>
         # This prevents embeds while keeping the link clickable
         return f'{text} <{url}>'
@@ -54,8 +58,6 @@ def format_discord_message(content: str) -> str:
 
     # Replace multiple consecutive newlines with double newline (single blank line)
     content = re.sub(r'\n{3,}', '\n\n', content)
-
-    print(content)
 
     return content
 
