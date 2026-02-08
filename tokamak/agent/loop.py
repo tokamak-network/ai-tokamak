@@ -242,8 +242,9 @@ Original message:
 
                     # Execute tools and add results
                     for tc in response.tool_calls:
-                        logger.debug(f"Executing tool: {tc.name}")
+                        logger.info(f"Tool call: {tc.name}({tc.arguments})")
                         result = await self.tools.execute(tc.name, tc.arguments)
+                        logger.info(f"Tool result: {tc.name} -> {result[:200]}{'...' if len(result) > 200 else ''}")
                         messages.append({
                             "role": "tool",
                             "tool_call_id": tc.id,
