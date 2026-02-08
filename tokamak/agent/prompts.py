@@ -99,12 +99,12 @@ Discord API strictly enforces a 2000 character limit. Exceeding this will cause 
 - Quote: `> quote text` → blockquote
 
 **Links** (IMPORTANT: Always disable embeds):
-- **Default format**: Use `[Link text](URL)` or `<URL>` to prevent embed preview
-- **Preferred**: `[Descriptive text](URL)` for better readability
-- Example: `[Documentation](https://docs.tokamak.network)`
+- **Default format**: Use `[Link text](<URL>)` or `<URL>` to prevent embed preview
+- **Preferred**: `[Descriptive text](<URL>)` for better readability
+- Example: `[Documentation](<https://docs.tokamak.network>)`
 - Always use descriptive link text, not "click here"
 - **❌ DON'T**: Post bare URLs like `https://example.com` (creates unwanted embed preview)
-- **✅ DO**: Use `<https://example.com>` or `[Example](https://example.com)`
+- **✅ DO**: Use `<https://example.com>` or `[Example](<https://example.com>)`
 - Reason: Embeds create large preview cards that clutter the chat
 
 **Lists & Structure**:
@@ -338,9 +338,9 @@ def get_tokamak_knowledge() -> str:
 - 🛠️ **Developer-Friendly**: Intuitive tools for all skill levels
 
 **Resources**:
-- Website: https://rolluphub.tokamak.network/
-- GitHub SDK: https://github.com/tokamak-network/trh-sdk
-- Documentation: https://docs.tokamak.network/home/service-guide
+- [Website](https://rolluphub.tokamak.network/)
+- [GitHub SDK](https://github.com/tokamak-network/trh-sdk)
+- [Documentation](https://docs.tokamak.network/home/service-guide)
 
 ## Ecosystem Protocols (12 Categories)
 
@@ -377,8 +377,8 @@ def get_tokamak_knowledge() -> str:
 ✅ **Staking/DAO Fully Decentralized**: Official centralized interfaces replaced with community-maintained versions
 - **Staking V2**: Launched August 2025 - Community-driven model without centralized backend
 - **DAO V2**: Launched September 2025 - Fully decentralized governance
-- **GitHub**: https://github.com/tokamak-network/staking-community-version
-- **Live Interface**: https://staking-community-version.vercel.app/
+- [GitHub](https://github.com/tokamak-network/staking-community-version)
+- [Live Interface](https://staking-community-version.vercel.app/)
 - Previous centralized URLs (staking.tokamak.network, dao.tokamak.network) are no longer available
 
 ### Titan L2 Sunset (December 2024 - Completed)
@@ -398,16 +398,16 @@ def get_tokamak_knowledge() -> str:
 - DAO V2 community version (September 2025)
 
 ## Official Resources
-- **Documentation**: https://docs.tokamak.network
-- **Website**: https://tokamak.network
-- **Rollup Hub**: https://rolluphub.tokamak.network
-- **Price Dashboard**: https://www.tokamak.network/about/price
-- **Grant Program**: https://tokamak.notion.site/Tokamak-Network-Grant-Program-GranTON-f2384b458ea341a0987c7e73a909aa21
-- **Staking Interface**: https://staking-community-version.vercel.app
+- [Documentation](https://docs.tokamak.network)
+- [Website](https://tokamak.network)
+- [Rollup Hub](https://rolluphub.tokamak.network)
+- [Price Dashboard](https://www.tokamak.network/about/price)
+- [Grant Program](https://tokamak.notion.site/Tokamak-Network-Grant-Program-GranTON-f2384b458ea341a0987c7e73a909aa21)
+- [Staking Interface](https://staking-community-version.vercel.app)
 
 ## Community Channels
-- **Discord**: discord.gg/XrHXrDTuNd
-- **Telegram**: t.me/tokamak_network
+- **Discord**: <https://discord.gg/XrHXrDTuNd>
+- **Telegram**: <https://t.me/tokamak_network>
 
 ## Trading Venues
 
@@ -427,7 +427,7 @@ def get_tokamak_knowledge() -> str:
 TON:  0x2be5e8c109e2197D077D13A82dAead6a9b3433C5
 WTON: 0xc4A11aaf6ea915Ed7Ac194161d2fC9384F15bff2
 ```
-🔗 Verify on Etherscan: https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5
+🔗 [Verify on Etherscan](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)
 
 ## Common Questions
 
@@ -452,7 +452,7 @@ Tokamak Rollup Hub(TRH) - 누구나 앱 전용 L2를 쉽게 구축 (메인넷 20
 ```
 
 ### "Where can I stake $TOKAMAK?"
-🔗 **Staking V2 (Community Version)**: https://staking-community-version.vercel.app/
+🔗 [Staking V2 (Community Version)](https://staking-community-version.vercel.app/)
 
 **How it works**:
 1. Connect wallet (MetaMask or compatible)
@@ -467,7 +467,7 @@ Tokamak Rollup Hub(TRH) - 누구나 앱 전용 L2를 쉽게 구축 (메인넷 20
 ```
 $TOKAMAK 스테이킹 방법:
 
-🔗 https://staking-community-version.vercel.app
+🔗 [스테이킹 인터페이스](https://staking-community-version.vercel.app)
 
 **진행 단계**:
 
@@ -483,9 +483,9 @@ $TOKAMAK 스테이킹 방법:
 
 ### "How do I build on Tokamak?"
 **Tokamak Rollup Hub (TRH)** - Deploy customized L2 Rollups
-- 🌐 **Web Interface**: https://rolluphub.tokamak.network/
-- 💻 **SDK**: https://github.com/tokamak-network/trh-sdk
-- 📖 **Documentation**: https://docs.tokamak.network
+- 🌐 [Web Interface](https://rolluphub.tokamak.network/)
+- 💻 [SDK](https://github.com/tokamak-network/trh-sdk)
+- 📖 [Documentation](https://docs.tokamak.network)
 - 💬 **Support**: Join Discord for developer help
 
 **Status**: Devnet live, mainnet coming Q1 2026
@@ -495,7 +495,7 @@ $TOKAMAK 스테이킹 방법:
 - 💰 Apply for grants to build your project
 - Full-time positions: USDT/USDC + TON grants
 - Part-time positions: Earn $TOKAMAK rewards
-🔗 https://tokamak.notion.site/Tokamak-Network-Grant-Program-GranTON-f2384b458ea341a0987c7e73a909aa21
+🔗 [GranTON 프로그램](https://tokamak.notion.site/Tokamak-Network-Grant-Program-GranTON-f2384b458ea341a0987c7e73a909aa21)
 
 ### "Grant 프로그램에 어떻게 지원하나요?" (Korean)
 **⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
@@ -523,7 +523,7 @@ GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 
 1. Convert TON → WTON via Etherscan contract interface
 2. Trade WTON on DEX (Uniswap, etc.)
 3. Convert back WTON → TON if needed
-🔗 https://etherscan.io/address/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5
+🔗 [Etherscan](https://etherscan.io/address/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)
 
 ### "TON과 WTON의 차이가 뭔가요?" (Korean)
 **⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
@@ -546,16 +546,16 @@ GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 
 ```
 
 ### "Where can I check TON price?"
-📊 **Official Price Dashboard**: https://www.tokamak.network/about/price
+📊 [Official Price Dashboard](https://www.tokamak.network/about/price)
 - Real-time price from major exchanges
 - Liquidity metrics and tokenomics
 
 📈 **Other Sources**:
 - CoinGecko, CoinMarketCap for market data
-- Dune Analytics: https://dune.com/tokamak-network/tokamak-network-tokenomics-dashboard
-- Etherscan (authoritative source): https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5
+- [Dune Analytics](https://dune.com/tokamak-network/tokamak-network-tokenomics-dashboard)
+- [Etherscan](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5) (authoritative source)
 
-💡 **Buying TON**: https://docs.tokamak.network/home/information/get-ton
+💡 [Buying TON](https://docs.tokamak.network/home/information/get-ton)
 
 ### "How does the Tokamak Network DAO work?"
 **Decentralized Autonomous Organization** - TON holders govern the ecosystem via DAO V2 (launched September 2025)
@@ -570,7 +570,7 @@ GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 
 2. Submit or vote on TIPs
 3. Influence ecosystem direction
 
-📖 Documentation: https://docs.tokamak.network/home/service-guide
+📖 [Documentation](https://docs.tokamak.network/home/service-guide)
 
 ### "DAO는 어떻게 참여하나요?" (Korean)
 **⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
@@ -612,7 +612,7 @@ GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 
 - Seamless messaging between custom networks
 - Maintains security while improving speed and cost
 
-📖 https://docs.tokamak.network
+📖 [Documentation](https://docs.tokamak.network)
 
 ### "L2 체인 간 통신은 어떻게 작동하나요?" (Korean)
 **⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:

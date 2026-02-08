@@ -30,31 +30,28 @@ def format_discord_message(content: str) -> str:
     content = re.sub(r'\n---+\n', '\n\n', content)
     content = re.sub(r'^---+$', '', content, flags=re.MULTILINE)
 
-    # Step 1: Convert markdown links to Discord format (text <url>)
+    # Step 1: Protect masked links [text](url) by replacing with placeholders
+    masked_links = []
     markdown_link_pattern = r'\[([^\]]+)\]\(([^\)]+)\)'
 
-    def save_markdown_link(match):
+    def protect_masked_link(match):
         text = match.group(1)
-        url = match.group(2)
+        url = match.group(2).strip('<>') # strip existing angle brackets if any
+        masked_links.append((text, url))
+        return f'__MASKED_LINK_{len(masked_links) - 1}__'
 
-        # If the link text is the URL itself, just return <url> once
-        if text.strip().rstrip('/') == url.strip().rstrip('/'):
-            return f'<{url}>'
-
-        # Convert markdown link to Discord format: text <url>
-        # This prevents embeds while keeping the link clickable
-        return f'{text} <{url}>'
-
-    content = re.sub(markdown_link_pattern, save_markdown_link, content)
+    content = re.sub(markdown_link_pattern, protect_masked_link, content)
 
     # Step 2: Convert bare URLs to <URL> format (to prevent embeds)
-    # Now safe to match URLs since markdown links are protected
     def replace_bare_urls(match):
         return f'<{match.group(0)}>'
 
-    # Pattern for bare URLs not already wrapped in < >
     url_pattern = r'(?<!<)https?://[^\s<>]+(?!>)'
     content = re.sub(url_pattern, replace_bare_urls, content)
+
+    # Step 3: Restore masked links with [text](<url>) format to prevent embeds
+    for i, (text, url) in enumerate(masked_links):
+        content = content.replace(f'__MASKED_LINK_{i}__', f'[{text}](<{url}>)')
 
     # Replace multiple consecutive newlines with double newline (single blank line)
     content = re.sub(r'\n{3,}', '\n\n', content)
