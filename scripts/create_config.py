@@ -37,7 +37,6 @@ def main():
         print("⚠️  Warning: MONITOR_CHANNEL_IDS is empty. Bot will not monitor any channels.")
 
     # Optional settings
-    response_probability = float(os.environ.get("RESPONSE_PROBABILITY", "0.1"))
     agent_model = os.environ.get("AGENT_MODEL", "qwen3-235b")
     conversation_timeout = int(os.environ.get("CONVERSATION_TIMEOUT_SECONDS", "300"))
     max_messages = int(os.environ.get("MAX_MESSAGES", "100"))
@@ -48,7 +47,6 @@ def main():
             "token": discord_token,
             "monitor_channel_ids": monitor_channel_ids,
             "allow_guilds": [],
-            "response_probability": response_probability,
             "conversation_timeout_seconds": conversation_timeout
         },
         "session": {
@@ -74,7 +72,7 @@ def main():
     print(f"  - Discord token: {'*' * 8}{discord_token[-4:]}")
     print(f"  - Monitor channels: {monitor_channel_ids}")
     print(f"  - Agent model: {agent_model}")
-    print(f"  - Response probability: {response_probability}")
+
 
 
 if __name__ == "__main__":

@@ -3,7 +3,6 @@
     "token": "",
     "monitor_channel_ids": [111111111, 222222222],
     "allow_guilds": [],
-    "response_probability": 0.1,
     "conversation_timeout_seconds": 300
   },
   "session": {

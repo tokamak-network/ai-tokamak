@@ -30,7 +30,6 @@ OPENROUTER_API_KEY=your_openrouter_api_key_here
 
 # Agent 설정 (선택사항)
 AGENT_MODEL=qwen3-235b
-RESPONSE_PROBABILITY=0.1
 ```
 
 ### 3. config.json 생성 스크립트 추가
@@ -59,7 +58,6 @@ config = {
             if x.strip()
         ],
         "allow_guilds": [],
-        "response_probability": float(os.environ.get("RESPONSE_PROBABILITY", "0.1")),
         "conversation_timeout_seconds": 300
     },
     "session": {

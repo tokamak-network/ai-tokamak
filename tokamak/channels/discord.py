@@ -1,7 +1,6 @@
 """Discord channel implementation."""
 
 import re
-import random
 import time
 from typing import Callable, Awaitable
 

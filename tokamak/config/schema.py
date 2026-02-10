@@ -15,12 +15,6 @@ class DiscordConfig(BaseModel):
         default_factory=list,
         description="Guild IDs allowed (empty = all)"
     )
-    response_probability: float = Field(
-        default=0.1,
-        ge=0.0,
-        le=1.0,
-        description="Probability of responding to non-mention messages (0.0-1.0)"
-    )
     conversation_timeout_seconds: int = Field(
         default=300,
         description="Seconds before conversation timeout (default 5 min)"
