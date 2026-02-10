@@ -42,16 +42,30 @@ def format_discord_message(content: str) -> str:
 
     content = re.sub(markdown_link_pattern, protect_masked_link, content)
 
-    # Step 2: Convert bare URLs to <URL> format (to prevent embeds)
+    # Step 2: Protect inline code spans (`...`) from URL processing
+    code_spans = []
+
+    def protect_code_span(match):
+        code_spans.append(match.group(0))
+        return f'__CODE_SPAN_{len(code_spans) - 1}__'
+
+    content = re.sub(r'`[^`]+`', protect_code_span, content)
+
+    # Step 3: Convert bare URLs to <URL> format (to prevent embeds)
+    # Only match valid URL characters (ASCII) to avoid capturing Korean particles, backticks, etc.
     def replace_bare_urls(match):
         return f'<{match.group(0)}>'
 
-    url_pattern = r'(?<!<)https?://[^\s<>]+(?!>)'
+    url_pattern = r"(?<!<)https?://[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+(?!>)"
     content = re.sub(url_pattern, replace_bare_urls, content)
 
-    # Step 3: Restore masked links with [text](<url>) format to prevent embeds
+    # Step 4: Restore masked links with [text](<url>) format to prevent embeds
     for i, (text, url) in enumerate(masked_links):
         content = content.replace(f'__MASKED_LINK_{i}__', f'[{text}](<{url}>)')
+
+    # Step 5: Restore inline code spans
+    for i, span in enumerate(code_spans):
+        content = content.replace(f'__CODE_SPAN_{i}__', span)
 
     # Replace multiple consecutive newlines with double newline (single blank line)
     content = re.sub(r'\n{3,}', '\n\n', content)
@@ -177,11 +191,6 @@ class DiscordChannel(BaseChannel):
             self._active_conversations[user_key] = now
             return True
 
-        # 3. Random probability for starting new conversation
-        if random.random() < self.config.response_probability:
-            self._active_conversations[user_key] = now
-            return True
-
         return False
 
     async def _on_message(self, message: Message) -> None:
@@ -217,7 +226,7 @@ class DiscordChannel(BaseChannel):
 
         # Check if session was ended
         is_mention = self._is_bot_mentioned(message)
-        if session.is_ended and (is_mention or random.random() < self.config.response_probability):
+        if session.is_ended and is_mention:
             # Reactivate session for new conversation
             session.reactivate()
             logger.info(f"Reactivating session for {user_key}")
