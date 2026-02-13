@@ -170,11 +170,13 @@ Original message:
         """
         Detect if text contains Korean characters.
 
-        Simple heuristic: checks for Hangul characters (U+AC00 to U+D7AF).
+        Checks for Hangul syllables (U+AC00-U+D7AF) and Jamo (U+3131-U+318E).
         Returns True if Korean detected, False otherwise.
         """
         for char in text:
-            if '\uAC00' <= char <= '\uD7AF':  # Hangul syllables
+            if '\uAC00' <= char <= '\uD7AF':  # Hangul syllables (가-힣)
+                return True
+            if '\u3131' <= char <= '\u318E':  # Hangul Jamo (ㄱ-ㅎ, ㅏ-ㅣ)
                 return True
         return False
 
@@ -220,6 +222,8 @@ Original message:
         logger.debug(f"AgentLoop: {len(messages)} messages, {len(tool_definitions or [])} tools")
 
         try:
+            consecutive_tool_errors = 0
+
             for iteration in range(self.max_iterations):
                 response = await self.provider.chat(
                     messages=messages,
@@ -251,15 +255,27 @@ Original message:
                     messages.append(assistant_msg)
 
                     # Execute tools and add results
+                    has_error = False
                     for tc in response.tool_calls:
                         logger.info(f"Tool call: {tc.name}({tc.arguments})")
                         result = await self.tools.execute(tc.name, tc.arguments)
                         logger.info(f"Tool result: {tc.name} -> {result[:200]}{'...' if len(result) > 200 else ''}")
+                        if '"error"' in result[:50]:
+                            has_error = True
                         messages.append({
                             "role": "tool",
                             "tool_call_id": tc.id,
                             "content": result
                         })
+
+                    if has_error:
+                        consecutive_tool_errors += 1
+                    else:
+                        consecutive_tool_errors = 0
+
+                    if consecutive_tool_errors >= 3:
+                        logger.warning("3 consecutive tool errors, stopping loop")
+                        return "죄송합니다, 정보를 가져오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요."
 
                     continue  # Next iteration
 

@@ -5,6 +5,7 @@ import re
 import uuid
 from typing import Any
 
+from loguru import logger
 from openai import AsyncOpenAI
 
 from tokamak.providers.base import LLMProvider, LLMResponse, ToolCallRequest
@@ -68,8 +69,9 @@ class OpenAICompatibleProvider(LLMProvider):
             response = await self.client.chat.completions.create(**kwargs)
             return self._parse_response(response)
         except Exception as e:
+            logger.error(f"LLM API error: {e}")
             return LLMResponse(
-                content=f"Error calling LLM: {str(e)}",
+                content="LLM 호출 중 오류가 발생했습니다.",
                 finish_reason="error",
             )
 

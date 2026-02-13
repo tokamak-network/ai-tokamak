@@ -1,5 +1,6 @@
 """Discord channel implementation."""
 
+import asyncio
 import re
 import time
 from typing import Callable, Awaitable
@@ -130,6 +131,9 @@ class DiscordChannel(BaseChannel):
 
         # Active conversation tracking: {user_key: last_message_timestamp}
         self._active_conversations: dict[str, float] = {}
+
+        # Per-user locks to prevent concurrent message processing
+        self._user_locks: dict[str, asyncio.Lock] = {}
 
         # Discord client setup
         intents = Intents.default()
@@ -281,31 +285,37 @@ class DiscordChannel(BaseChannel):
 
         # Call the message callback if set
         if self.on_message_callback:
-            try:
-                response = await self.on_message_callback(session, content)
-                if response:
-                    # Save bot response to session
-                    session.add_message(role="assistant", content=response)
-                    # Format and send response, splitting if over Discord limit
-                    formatted_response = format_discord_message(response)
-                    chunks = split_message(formatted_response)
-                    await message.reply(chunks[0])
-                    for chunk in chunks[1:]:
-                        await message.channel.send(chunk)
+            # Get or create per-user lock
+            if user_key not in self._user_locks:
+                self._user_locks[user_key] = asyncio.Lock()
+            lock = self._user_locks[user_key]
 
-                    # If session was ended, remove from active conversations
-                    if session.is_ended:
-                        if user_key in self._active_conversations:
-                            del self._active_conversations[user_key]
-                            logger.info(f"Removed {user_key} from active conversations (session ended)")
-            except Exception as e:
-                logger.error(f"Error processing message: {e}")
+            async with lock:
                 try:
-                    await message.reply(
-                        "죄송합니다, 응답 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
-                    )
-                except Exception:
-                    pass
+                    response = await self.on_message_callback(session, content)
+                    if response:
+                        # Save bot response to session
+                        session.add_message(role="assistant", content=response)
+                        # Format and send response, splitting if over Discord limit
+                        formatted_response = format_discord_message(response)
+                        chunks = split_message(formatted_response)
+                        await message.reply(chunks[0])
+                        for chunk in chunks[1:]:
+                            await message.channel.send(chunk)
+
+                        # If session was ended, remove from active conversations
+                        if session.is_ended:
+                            if user_key in self._active_conversations:
+                                del self._active_conversations[user_key]
+                                logger.info(f"Removed {user_key} from active conversations (session ended)")
+                except Exception as e:
+                    logger.error(f"Error processing message: {e}")
+                    try:
+                        await message.reply(
+                            "죄송합니다, 응답 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+                        )
+                    except Exception:
+                        pass
         else:
             # Fallback: publish to message bus
             await self._handle_message(
@@ -352,7 +362,7 @@ class DiscordChannel(BaseChannel):
         return self._client
 
     def cleanup_expired_conversations(self) -> int:
-        """Remove expired entries from active conversations.
+        """Remove expired entries from active conversations and unused locks.
 
         Returns:
             Number of entries removed.
@@ -365,6 +375,9 @@ class DiscordChannel(BaseChannel):
         ]
         for key in expired:
             del self._active_conversations[key]
+            # Also clean up the lock if not currently held
+            if key in self._user_locks and not self._user_locks[key].locked():
+                del self._user_locks[key]
         return len(expired)
 
     @property
