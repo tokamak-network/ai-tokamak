@@ -2,6 +2,9 @@
 
 from datetime import datetime
 
+# Cache for base prompt sections (invalidated each minute due to timestamp)
+_base_prompt_cache: dict[str, str] = {"key": "", "value": ""}
+
 
 def get_base_identity() -> str:
     """Get the base identity section."""
@@ -430,10 +433,17 @@ WTON: 0xc4A11aaf6ea915Ed7Ac194161d2fC9384F15bff2
 
 ## Common Questions
 
-IMPORTANT: Korean patterns marked "⚠️ COPY THIS ANSWER EXACTLY" must be copied verbatim for Korean responses. For English responses, use the patterns as reference and write natural English.
+When a matching Answer Pattern exists, use it. Korean patterns marked "⚠️ COPY THIS ANSWER EXACTLY" must be copied verbatim. For English responses, use patterns as reference and write natural English.
 
-### "토카막 네트워크가 뭔가요?" / "What is Tokamak Network?" (Korean)
-**⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
+NOTE: Only the most relevant patterns for the current question are included below. If no patterns appear, answer based on the Knowledge Base above."""
+
+
+# Answer patterns with keyword triggers for dynamic injection
+ANSWER_PATTERNS: list[dict] = [
+    {
+        "keywords": ["토카막", "tokamak", "뭔가요", "what is", "무엇"],
+        "content": """### "토카막 네트워크가 뭔가요?" / "What is Tokamak Network?"
+**⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
 토카막 네트워크는 필요할 때마다 맞춤형 이더리움 L2 네트워크를 구축할 수 있는 플랫폼입니다.
 
@@ -450,21 +460,12 @@ Tokamak Rollup Hub(TRH) - 누구나 앱 전용 L2를 쉽게 구축 (메인넷 20
 
 🔗 [공식 문서](https://docs.tokamak.network)
 🌐 [웹사이트](https://tokamak.network)
-```
-
-### "Where can I stake $TOKAMAK?"
-🔗 [Staking V2 (Community Version)](https://staking-community-version.vercel.app/)
-
-**How it works**:
-1. Connect wallet (MetaMask or compatible)
-2. Stake TON or WTON tokens
-3. Select DAO candidate to support governance
-4. Earn staking rewards for securing the network
-
-**Note**: Community-maintained interface (launched August 2025) - fully decentralized without centralized backend
-
-### "스테이킹 방법 알려주세요" (Korean)
-**⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
+```""",
+    },
+    {
+        "keywords": ["스테이킹", "staking", "stake", "스테이크"],
+        "content": """### "스테이킹 방법 알려주세요" / "Where can I stake?"
+**⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
 $TOKAMAK 스테이킹 방법:
 
@@ -481,25 +482,12 @@ $TOKAMAK 스테이킹 방법:
 
 📖 [자세한 가이드](https://docs.tokamak.network)
 ```
-
-### "How do I build on Tokamak?"
-**Tokamak Rollup Hub (TRH)** - Deploy customized L2 Rollups
-- 🌐 [Web Interface](https://rolluphub.tokamak.network/)
-- 💻 [SDK](https://github.com/tokamak-network/trh-sdk)
-- 📖 [Documentation](https://docs.tokamak.network)
-- 💬 **Support**: Join Discord for developer help
-
-**Status**: Devnet live, mainnet coming Q1 2026
-
-### "How can I get funding for my project?"
-**GranTON (Grant Program)**: Support for ecosystem projects
-- 💰 Apply for grants to build your project
-- Full-time positions: USDT/USDC + TON grants
-- Part-time positions: Earn $TOKAMAK rewards
-🔗 [GranTON 프로그램](https://tokamak.notion.site/Tokamak-Network-Grant-Program-GranTON-f2384b458ea341a0987c7e73a909aa21)
-
-### "Grant 프로그램에 어떻게 지원하나요?" (Korean)
-**⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
+**English reference**: Staking V2 at https://staking-community-version.vercel.app/ - connect wallet, stake TON/WTON, select DAO candidate.""",
+    },
+    {
+        "keywords": ["grant", "그랜트", "지원", "funding", "granton"],
+        "content": """### "Grant 프로그램에 어떻게 지원하나요?" / "How can I get funding?"
+**⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
 GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 그랜트 프로그램입니다.
 
@@ -511,23 +499,12 @@ GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 
 🔗 [GranTON 공식 페이지](https://tokamak.notion.site/Tokamak-Network-Grant-Program-GranTON-f2384b458ea341a0987c7e73a909aa21)
 
 자세한 지원 방법과 요구사항은 공식 페이지에서 확인하실 수 있어요!
-```
-
-### "What's the difference between TON and WTON?"
-**Basic Facts**:
-- **Value**: 1 TON = 1 WTON (always equal, freely convertible)
-- **Decimals**: TON has 18, WTON has 27 (higher precision for DeFi)
-- **Trading**: TON works on CEX, WTON required for DEX
-
-**DEX Trading**:
-⚠️ TON cannot be traded directly on DEX due to security features
-1. Convert TON → WTON via Etherscan contract interface
-2. Trade WTON on DEX (Uniswap, etc.)
-3. Convert back WTON → TON if needed
-🔗 [Etherscan](https://etherscan.io/address/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)
-
-### "TON과 WTON의 차이가 뭔가요?" (Korean)
-**⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
+```""",
+    },
+    {
+        "keywords": ["wton", "차이", "difference", "wrap"],
+        "content": """### "TON과 WTON의 차이가 뭔가요?" / "What's the difference between TON and WTON?"
+**⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
 **TON과 WTON의 차이**:
 
@@ -544,37 +521,12 @@ GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 
 ⚠️ DEX 거래 시 TON은 특별한 보안 설계로 직접 거래 불가 → Etherscan에서 TON을 WTON으로 변환 후 거래
 
 🔗 [TON 컨트랙트](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)
-```
-
-### "Where can I check TON price?"
-📊 [Official Price Dashboard](https://www.tokamak.network/about/price)
-- Real-time price from major exchanges
-- Liquidity metrics and tokenomics
-
-📈 **Other Sources**:
-- CoinGecko, CoinMarketCap for market data
-- [Dune Analytics](https://dune.com/tokamak-network/tokamak-network-tokenomics-dashboard)
-- [Etherscan](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5) (authoritative source)
-
-💡 [Buying TON](https://docs.tokamak.network/home/information/get-ton)
-
-### "How does the Tokamak Network DAO work?"
-**Decentralized Autonomous Organization** - TON holders govern the ecosystem via DAO V2 (launched September 2025)
-
-**Key Features**:
-- 🗳️ **DAO Candidates**: Select candidates through staking
-- 📝 **TIP (Tokamak Improvement Proposals)**: Propose and vote on protocol changes
-- 🆕 **Fully Decentralized**: No centralized backend or committee structure
-
-**How to Participate**:
-1. Hold and stake TON tokens with DAO candidates
-2. Submit or vote on TIPs
-3. Influence ecosystem direction
-
-📖 [Documentation](https://docs.tokamak.network/home/service-guide)
-
-### "DAO는 어떻게 참여하나요?" (Korean)
-**⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
+```""",
+    },
+    {
+        "keywords": ["dao", "거버넌스", "governance", "투표", "vote", "tip"],
+        "content": """### "DAO는 어떻게 참여하나요?" / "How does the DAO work?"
+**⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
 **토카막 네트워크 DAO 참여 방법**:
 
@@ -589,10 +541,12 @@ GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 
 ✅ 2025년 9월부터 완전히 탈중앙화된 DAO V2 운영 중
 
 🔗 [공식 문서](https://docs.tokamak.network/home/service-guide)
-```
-
-### "DEX에서 TON을 거래할 수 있나요?" (Korean)
-**⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
+```""",
+    },
+    {
+        "keywords": ["dex", "거래", "swap", "uniswap", "trade"],
+        "content": """### "DEX에서 TON을 거래할 수 있나요?"
+**⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
 ❌ TON은 특별한 보안 설계로 인해 DEX에서 직접 거래가 불가능합니다.
 
@@ -605,18 +559,12 @@ GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 
 💡 WTON은 TON과 1:1 가치이며 DeFi 호환용 래핑 토큰입니다.
 
 🔗 [자세한 가이드](https://docs.tokamak.network)
-```
-
-### "How does L2 interoperability work?"
-**Cross-Layer Message Protocol** enables:
-- Direct L2-to-L2 communication without going through Ethereum L1
-- Seamless messaging between custom networks
-- Maintains security while improving speed and cost
-
-📖 [Documentation](https://docs.tokamak.network)
-
-### "L2 체인 간 통신은 어떻게 작동하나요?" (Korean)
-**⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
+```""",
+    },
+    {
+        "keywords": ["통신", "interop", "cross", "메시지", "message protocol"],
+        "content": """### "L2 체인 간 통신은 어떻게 작동하나요?"
+**⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
 **Cross-Layer Message Protocol**을 통해 L2 체인끼리 직접 통신할 수 있습니다.
 
@@ -625,10 +573,12 @@ L1(이더리움)을 거치지 않고 L2 체인끼리 직접 메시지를 주고�
 예: 게임 전용 L2와 DeFi 전용 L2가 서로 자산이나 데이터를 직접 교환할 수 있습니다.
 
 🔗 [자세한 내용](https://docs.tokamak.network)
-```
-
-### "TON 토큰은 어디서 구매할 수 있나요?" (Korean)
-**⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
+```""",
+    },
+    {
+        "keywords": ["구매", "buy", "purchase", "어디서", "where to buy", "거래소", "exchange"],
+        "content": """### "TON 토큰은 어디서 구매할 수 있나요?" / "Where can I buy TON?"
+**⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
 $TOKAMAK(TON) 토큰 구매처:
 
@@ -643,10 +593,12 @@ TON은 직접 거래 불가. TON → WTON 변환 후 Uniswap 등에서 거래
 
 🔗 [TON 구매 가이드](https://docs.tokamak.network/home/information/get-ton)
 🔗 [Etherscan 변환](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)
-```
-
-### "Tokamak Rollup Hub는 언제 출시되나요?" / "When will TRH launch?" (Korean)
-**⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
+```""",
+    },
+    {
+        "keywords": ["rollup hub", "trh", "출시", "launch", "메인넷", "mainnet", "빌드", "build", "개발"],
+        "content": """### "Tokamak Rollup Hub는 언제 출시되나요?" / "How do I build on Tokamak?"
+**⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
 Tokamak Rollup Hub (TRH)의 메인넷은 **2026년 1분기** 출시 예정입니다.
 
@@ -655,20 +607,12 @@ Tokamak Rollup Hub (TRH)의 메인넷은 **2026년 1분기** 출시 예정입니
 🔗 [공식 웹사이트](https://rolluphub.tokamak.network/)
 📖 [개발자 문서](https://docs.tokamak.network/home/service-guide)
 ```
-
-### "What happened to Titan?"
-**Titan L2 was retired on December 26, 2024.**
-
-- 🚀 **Launched**: June 30, 2023 (First L2 mainnet - Optimistic Rollup)
-- 🛑 **Retired**: December 26, 2024
-- 🎯 **Mission Completed**: Served as testing ground for features and operational expertise
-
-**Why retired**: All learnings integrated into Tokamak Rollup Hub (TRH), which provides a superior platform for deploying customized L2 networks.
-
-**Current Status**: No longer operational. Focus shifted to TRH platform.
-
-### "Titan은 왜 종료됐나요?" (Korean)
-**⚠️ COPY THIS ANSWER EXACTLY - DO NOT MODIFY ANY WORDING**:
+**English reference**: TRH SDK at https://github.com/tokamak-network/trh-sdk - Devnet live, mainnet Q1 2026.""",
+    },
+    {
+        "keywords": ["titan", "타이탄", "종료", "sunset", "retired"],
+        "content": """### "Titan은 왜 종료됐나요?" / "What happened to Titan?"
+**⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
 Titan L2는 2024년 12월 26일에 종료되었습니다.
 
@@ -679,28 +623,44 @@ Titan은 토카막 네트워크의 첫 L2 메인넷으로, 기술 검증용으�
 🎯 **현재**: TRH 메인넷 2026년 1분기 출시 예정
 
 📖 [자세히 보기](https://docs.tokamak.network)
-```
+```""",
+    },
+    {
+        "keywords": ["가격", "price", "시세", "coingecko", "coinmarketcap"],
+        "content": """### "Where can I check TON price?"
+📊 [Official Price Dashboard](https://www.tokamak.network/about/price)
+📈 Other: CoinGecko, CoinMarketCap, [Dune Analytics](https://dune.com/tokamak-network/tokamak-network-tokenomics-dashboard)
+💡 [Buying TON](https://docs.tokamak.network/home/information/get-ton)""",
+    },
+    {
+        "keywords": ["투자", "invest", "financial", "returns"],
+        "content": """### "Is this a good investment?"
+I can't provide investment advice! I can help you understand the technology. DYOR (Do Your Own Research)!""",
+    },
+]
 
-### "Is this a good investment?"
-I can't provide investment advice! 🙅 I can help you understand the technology, but investment decisions are yours to make. DYOR (Do Your Own Research)!
 
-**Instead, I can help you with**:
-- Understanding the technology and use cases
-- Finding official documentation and resources
-- Connecting you with the community
-- Explaining how features work"""
+def get_matching_patterns(user_message: str) -> str:
+    """Return answer patterns matching the user's question based on keywords."""
+    message_lower = user_message.lower()
+    matched = []
+    for pattern in ANSWER_PATTERNS:
+        if any(kw in message_lower for kw in pattern["keywords"]):
+            matched.append(pattern["content"])
+    return "\n\n".join(matched)
 
 
-def build_system_prompt(skills_summary: str | None = None) -> str:
+def _get_base_prompt(skills_summary: str | None = None) -> str:
+    """Get cached base prompt (identity + guidelines + knowledge + skills).
+
+    Rebuilds only when the minute changes (timestamp in identity section).
     """
-    Build the complete system prompt.
+    # Cache key includes minute and skills_summary presence
+    cache_key = datetime.now().strftime("%Y-%m-%d %H:%M") + str(bool(skills_summary))
 
-    Args:
-        skills_summary: Optional XML summary of available skills.
+    if _base_prompt_cache["key"] == cache_key:
+        return _base_prompt_cache["value"]
 
-    Returns:
-        Complete system prompt string.
-    """
     sections = [
         get_base_identity(),
         get_discord_guidelines(),
@@ -720,4 +680,29 @@ You have access to specialized skills for specific tasks. When a user request ma
 3. Follow the instructions in that skill
 4. If no skill matches, use your general knowledge and tools""")
 
-    return "\n\n\n".join(sections)
+    result = "\n\n\n".join(sections)
+    _base_prompt_cache["key"] = cache_key
+    _base_prompt_cache["value"] = result
+    return result
+
+
+def build_system_prompt(skills_summary: str | None = None, user_message: str | None = None) -> str:
+    """
+    Build the complete system prompt.
+
+    Args:
+        skills_summary: Optional XML summary of available skills.
+        user_message: Current user message for dynamic pattern matching.
+
+    Returns:
+        Complete system prompt string.
+    """
+    base = _get_base_prompt(skills_summary)
+
+    # Inject only matching answer patterns based on user message
+    if user_message:
+        patterns = get_matching_patterns(user_message)
+        if patterns:
+            return base + f"\n\n\n# Answer Patterns (for this question)\n\n{patterns}"
+
+    return base

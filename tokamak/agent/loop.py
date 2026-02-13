@@ -1,6 +1,7 @@
 """Agent loop with tool support."""
 
 import json
+import re
 
 from loguru import logger
 
@@ -42,17 +43,8 @@ class AgentLoop:
 
     @property
     def system_prompt(self) -> str:
-        """Build system prompt with skills summary if available."""
-        # Use custom prompt if provided, otherwise build default
-        if self._custom_system_prompt:
-            return self._custom_system_prompt
-
-        # Build system prompt with skills
-        skills_summary = None
-        if self.skills_loader:
-            skills_summary = self.skills_loader.build_skills_summary()
-
-        return build_system_prompt(skills_summary)
+        """Build system prompt with skills summary (no user-message patterns)."""
+        return self._get_system_prompt()
 
     async def _review_korean_quality(self, content: str) -> str:
         """Review and correct Korean language quality issues.
@@ -69,57 +61,13 @@ class AgentLoop:
         if not content or len(content) < 10:
             return content
         
-        review_prompt = """Review and correct this Discord message for Korean language quality.
+        review_prompt = """Korean quality check. Fix ONLY these critical issues, return corrected text only:
 
-CRITICAL CHECKS:
-
-1. **Brand Name Accuracy - HIGHEST PRIORITY**:
-   - ✅ ALWAYS use "토카막 네트워크" when referring to Tokamak Network (NOT just "토카막")
-   - ❌ NEVER use typos: "토라막", "토큰막", "토까막"
-   - ✅ Verify spelling of ALL official names:
-     * "토카막 네트워크" (Tokamak Network)
-     * "Tokamak Rollup Hub" / "TRH"
-     * "GranTON"
-     * "Titan"
-   - ✅ **Token Symbols - NEVER translate**:
-     * ✅ CORRECT: "TON", "WTON", "$TOKAMAK"
-     * ❌ WRONG: "톤", "더블유톤", "토카막 토큰"
-   - 🚨 Brand name errors are UNACCEPTABLE - double-check every occurrence
-
-2. **Emoji Usage**: Limit to 2-3 emojis per response
-   - BAD: `**🔍 핵심 특징**`, `**💼 중앙화 거래소**` (decorative emoji headers)
-   - GOOD: `**핵심 특징**`, `🔗 **공식 리소스**` (emoji only for key info like links/warnings)
-
-3. **Terminology Consistency**:
-   - BAD: "전직(FT)", "시간제(PT)", "seigniorage 리워드"
-   - GOOD: "풀타임" or "상근", "파트타임" or "비상근", "스테이킹 보상"
-   - Remove unnecessary English in parentheses: "DAO 후보(Candidate)" → "DAO 후보"
-
-4. **Natural Korean Expressions**:
-   - BAD: "보안 기능으로 인해", "L2 ↔ L2 간", "자유롭게 전환 가능"
-   - GOOD: "특별한 보안 설계로", "L2 체인끼리 직접", "컨트랙트를 통해 1:1 교환"
-   - Omit pronouns naturally rather than literal "그", "그녀", "그것"
-
-5. **Section Header Style**:
-   - BAD: Multiple decorative emoji headers throughout response
-   - GOOD: Simple bold `**제목**:` or single emoji `🔗 **제목**` for important sections only
-
-6. **Discord Markdown**: Remove unsupported syntax:
-   - BAD: `####` headers (Discord doesn't support these)
-   - GOOD: Use **bold text** or blank lines for sections
-
-CRITICAL - URL HANDLING:
-- Keep URLs EXACTLY as they appear
-- DO NOT duplicate or repeat URLs
-- DO NOT add extra links
-- If you see "🔗 <url> text", keep it as "🔗 <url> text" (single occurrence)
-
-IMPORTANT:
-- If the message is in English, return it unchanged
-- Only output the corrected message text (no explanations)
-- If no corrections needed, return the original text exactly
-- Preserve all code blocks
-- Focus on fixing terminology and natural Korean flow
+1. Brand names: "토카막 네트워크" (NOT "토카막" alone). No typos: "토라막", "토큰막" 등
+2. Token symbols stay English: TON, WTON, $TOKAMAK (NOT "톤", "더블유톤")
+3. Max 2-3 emojis. No decorative emoji headers like "**🔍 제목**"
+4. URLs: keep EXACTLY as-is, do NOT duplicate or add extra links
+5. If English, return unchanged. No explanations, just the corrected text.
 
 Original message:
 """
@@ -150,7 +98,6 @@ Original message:
                 return content
             
             # Check for URL duplication
-            import re
             original_urls = re.findall(r'https?://[^\s<>]+', content)
             reviewed_urls = re.findall(r'https?://[^\s<>]+', reviewed)
             
@@ -186,9 +133,20 @@ Original message:
         """Remove conversation end markers from user input to prevent injection."""
         return text.replace(self.END_MARKER, "")
 
+    def _get_system_prompt(self, user_message: str | None = None) -> str:
+        """Build system prompt, optionally injecting relevant answer patterns."""
+        if self._custom_system_prompt:
+            return self._custom_system_prompt
+
+        skills_summary = None
+        if self.skills_loader:
+            skills_summary = self.skills_loader.build_skills_summary()
+
+        return build_system_prompt(skills_summary, user_message=user_message)
+
     def _build_messages(self, session: Session, current_message: str) -> list[dict]:
         """Build messages list for LLM call."""
-        messages = [{"role": "system", "content": self.system_prompt}]
+        messages = [{"role": "system", "content": self._get_system_prompt(current_message)}]
 
         # Add history
         history = session.get_history(max_messages=self.max_history_messages)
