@@ -1,7 +1,7 @@
 """Session management for conversation history (memory-based)."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 
@@ -139,6 +139,21 @@ class SessionManager:
                 reverse=True
             )
         ]
+
+    def cleanup_stale(self, max_age_seconds: int = 3600) -> int:
+        """Remove sessions that haven't been updated within max_age_seconds.
+
+        Returns:
+            Number of sessions removed.
+        """
+        cutoff = datetime.now() - timedelta(seconds=max_age_seconds)
+        stale_keys = [
+            key for key, session in self._sessions.items()
+            if session.updated_at < cutoff
+        ]
+        for key in stale_keys:
+            del self._sessions[key]
+        return len(stale_keys)
 
     def __len__(self) -> int:
         return len(self._sessions)

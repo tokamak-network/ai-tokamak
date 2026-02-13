@@ -1,9 +1,12 @@
 """Web fetch tool for scraping URLs."""
 
 import html
+import ipaddress
 import json
 import re
+import socket
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 
@@ -51,8 +54,36 @@ class WebFetchTool(Tool):
     def __init__(self, max_chars: int = 50000):
         self.max_chars = max_chars
 
+    def _is_safe_url(self, url: str) -> str | None:
+        """Validate URL is safe to fetch. Returns error message if unsafe, None if safe."""
+        try:
+            parsed = urlparse(url)
+        except Exception:
+            return "Invalid URL"
+
+        if parsed.scheme not in ("http", "https"):
+            return f"Unsupported scheme: {parsed.scheme}"
+
+        hostname = parsed.hostname
+        if not hostname:
+            return "No hostname in URL"
+
+        try:
+            ip = ipaddress.ip_address(socket.gethostbyname(hostname))
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                return "Access to internal networks is not allowed"
+        except (socket.gaierror, ValueError):
+            return f"Cannot resolve hostname: {hostname}"
+
+        return None
+
     async def execute(self, url: str, max_chars: int | None = None, **kwargs: Any) -> str:
         max_chars = max_chars or self.max_chars
+
+        # SSRF protection: validate URL before fetching
+        safety_error = self._is_safe_url(url)
+        if safety_error:
+            return json.dumps({"error": safety_error, "url": url})
 
         try:
             async with httpx.AsyncClient() as client:

@@ -72,6 +72,36 @@ def format_discord_message(content: str) -> str:
     return content
 
 
+DISCORD_MAX_LENGTH = 2000
+DISCORD_SAFE_LENGTH = 1900
+
+
+def split_message(content: str, max_length: int = DISCORD_SAFE_LENGTH) -> list[str]:
+    """Split a message into chunks that fit within Discord's character limit.
+
+    Splits on newline boundaries when possible, falling back to hard cut.
+    """
+    if len(content) <= max_length:
+        return [content]
+
+    chunks = []
+    while content:
+        if len(content) <= max_length:
+            chunks.append(content)
+            break
+
+        # Find last newline within limit
+        cut = content.rfind("\n", 0, max_length)
+        if cut <= 0:
+            # No newline found, hard cut at max_length
+            cut = max_length
+
+        chunks.append(content[:cut])
+        content = content[cut:].lstrip("\n")
+
+    return chunks
+
+
 class DiscordChannel(BaseChannel):
     """Discord channel implementation with conversation tracking."""
 
@@ -256,9 +286,12 @@ class DiscordChannel(BaseChannel):
                 if response:
                     # Save bot response to session
                     session.add_message(role="assistant", content=response)
-                    # Format and send response using reply
+                    # Format and send response, splitting if over Discord limit
                     formatted_response = format_discord_message(response)
-                    await message.reply(formatted_response)
+                    chunks = split_message(formatted_response)
+                    await message.reply(chunks[0])
+                    for chunk in chunks[1:]:
+                        await message.channel.send(chunk)
 
                     # If session was ended, remove from active conversations
                     if session.is_ended:
@@ -267,6 +300,12 @@ class DiscordChannel(BaseChannel):
                             logger.info(f"Removed {user_key} from active conversations (session ended)")
             except Exception as e:
                 logger.error(f"Error processing message: {e}")
+                try:
+                    await message.reply(
+                        "죄송합니다, 응답 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+                    )
+                except Exception:
+                    pass
         else:
             # Fallback: publish to message bus
             await self._handle_message(
@@ -297,7 +336,8 @@ class DiscordChannel(BaseChannel):
 
             if channel and hasattr(channel, "send"):
                 formatted_content = format_discord_message(msg.content)
-                await channel.send(formatted_content)
+                for chunk in split_message(formatted_content):
+                    await channel.send(chunk)
                 logger.debug(f"Sent message to channel {channel_id}")
             else:
                 logger.error(f"Channel {channel_id} not found or not sendable")
@@ -310,6 +350,22 @@ class DiscordChannel(BaseChannel):
     def client(self) -> discord.Client:
         """Get the Discord client instance."""
         return self._client
+
+    def cleanup_expired_conversations(self) -> int:
+        """Remove expired entries from active conversations.
+
+        Returns:
+            Number of entries removed.
+        """
+        now = time.time()
+        timeout = self.config.conversation_timeout_seconds
+        expired = [
+            key for key, ts in self._active_conversations.items()
+            if now - ts >= timeout
+        ]
+        for key in expired:
+            del self._active_conversations[key]
+        return len(expired)
 
     @property
     def active_conversation_count(self) -> int:

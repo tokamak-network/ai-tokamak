@@ -178,6 +178,12 @@ Original message:
                 return True
         return False
 
+    END_MARKER = "===END_CONVERSATION==="
+
+    def _sanitize_input(self, text: str) -> str:
+        """Remove conversation end markers from user input to prevent injection."""
+        return text.replace(self.END_MARKER, "")
+
     def _build_messages(self, session: Session, current_message: str) -> list[dict]:
         """Build messages list for LLM call."""
         messages = [{"role": "system", "content": self.system_prompt}]
@@ -186,10 +192,14 @@ Original message:
         history = session.get_history(max_messages=self.max_history_messages)
         if history and history[-1]["role"] == "user" and history[-1]["content"] == current_message:
             history = history[:-1]
-        messages.extend(history)
+        # Sanitize user messages in history
+        for msg in history:
+            if msg["role"] == "user":
+                msg = {**msg, "content": self._sanitize_input(msg["content"])}
+            messages.append(msg)
 
-        # Add current message
-        messages.append({"role": "user", "content": current_message})
+        # Add current message (sanitized)
+        messages.append({"role": "user", "content": self._sanitize_input(current_message)})
         return messages
 
     async def run(self, session: Session, message: str, skip_korean_review: bool = False) -> str | None:
@@ -259,11 +269,11 @@ Original message:
                     content = content.strip()
 
                     # Check for conversation end marker
-                    if "===END_CONVERSATION===" in content:
+                    if self.END_MARKER in content:
                         logger.info("Conversation end requested by agent")
                         session.end()
                         # Return only the message before the marker
-                        content = content.split("===END_CONVERSATION===")[0].strip()
+                        content = content.split(self.END_MARKER)[0].strip()
                         return content if content else "대화를 종료합니다. 다시 대화하고 싶으시면 언제든지 말씀해주세요!"
 
                     # Apply Korean quality review if enabled

@@ -119,6 +119,21 @@ class TokamakApp:
             skip_korean_review=skip_korean_review
         )
 
+    async def _periodic_cleanup(self, interval_seconds: int = 600) -> None:
+        """Periodically clean up stale sessions and expired conversations."""
+        while self._running:
+            await asyncio.sleep(interval_seconds)
+            try:
+                removed_sessions = self.session_manager.cleanup_stale(max_age_seconds=3600)
+                removed_convos = self.discord.cleanup_expired_conversations()
+                if removed_sessions or removed_convos:
+                    logger.info(
+                        f"Cleanup: removed {removed_sessions} stale sessions, "
+                        f"{removed_convos} expired conversations"
+                    )
+            except Exception as e:
+                logger.error(f"Cleanup error: {e}")
+
     async def start(self) -> None:
         """Start all services."""
         logger.info("Starting Tokamak bot...")
@@ -126,6 +141,7 @@ class TokamakApp:
 
         # Start message bus dispatcher
         bus_task = asyncio.create_task(self.bus.dispatch_outbound())
+        cleanup_task = asyncio.create_task(self._periodic_cleanup())
 
         # Subscribe Discord to outbound messages
         self.bus.subscribe_outbound("discord", self.discord.send)
@@ -138,6 +154,7 @@ class TokamakApp:
         finally:
             await self.stop()
             bus_task.cancel()
+            cleanup_task.cancel()
 
     async def stop(self) -> None:
         """Stop all services."""
