@@ -106,17 +106,10 @@ class TokamakApp:
         Returns:
             Bot response or None
         """
-        # Detect if input is in English (no Korean characters)
-        skip_korean_review = not self.agent._detect_korean(content)
-
-        if skip_korean_review:
-            logger.debug("English input detected - Korean review will be skipped")
-
         return await self.agent.run_with_retry(
             session,
             content,
             max_retries=1,
-            skip_korean_review=skip_korean_review
         )
 
     async def _periodic_cleanup(self, interval_seconds: int = 600) -> None:
@@ -157,7 +150,9 @@ class TokamakApp:
             cleanup_task.cancel()
 
     async def stop(self) -> None:
-        """Stop all services."""
+        """Stop all services (safe to call multiple times)."""
+        if not self._running:
+            return
         logger.info("Stopping Tokamak bot...")
         self._running = False
 

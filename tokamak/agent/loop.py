@@ -61,13 +61,15 @@ class AgentLoop:
         if not content or len(content) < 10:
             return content
         
-        review_prompt = """Korean quality check. Fix ONLY these critical issues, return corrected text only:
+        review_prompt = """Korean quality check. Fix ONLY these issues, return corrected text only:
 
 1. Brand names: "토카막 네트워크" (NOT "토카막" alone). No typos: "토라막", "토큰막" 등
 2. Token symbols stay English: TON, WTON, $TOKAMAK (NOT "톤", "더블유톤")
 3. Max 2-3 emojis. No decorative emoji headers like "**🔍 제목**"
 4. URLs: keep EXACTLY as-is, do NOT duplicate or add extra links
-5. If English, return unchanged. No explanations, just the corrected text.
+5. Remove trailing spaces at end of lines
+6. Fix Korean particle errors (은/는, 이/가, 을/를 based on preceding character)
+7. If English, return unchanged. No explanations, just the corrected text.
 
 Original message:
 """
@@ -97,13 +99,12 @@ Original message:
                 logger.warning("Korean review produced suspicious output, using original")
                 return content
             
-            # Check for URL duplication
-            original_urls = re.findall(r'https?://[^\s<>]+', content)
-            reviewed_urls = re.findall(r'https?://[^\s<>]+', reviewed)
-            
-            # If reviewed has more URLs than original, likely duplicated
-            if len(reviewed_urls) > len(original_urls):
-                logger.warning(f"Korean review duplicated URLs ({len(original_urls)} -> {len(reviewed_urls)}), using original")
+            # Check for URL changes (additions, modifications, or deletions)
+            original_urls = set(re.findall(r'https?://[^\s<>]+', content))
+            reviewed_urls = set(re.findall(r'https?://[^\s<>]+', reviewed))
+
+            if reviewed_urls != original_urls:
+                logger.warning(f"Korean review altered URLs, using original")
                 return content
             
             logger.debug(f"Korean review applied: {len(content)} -> {len(reviewed)} chars")
@@ -162,14 +163,13 @@ Original message:
         messages.append({"role": "user", "content": self._sanitize_input(current_message)})
         return messages
 
-    async def run(self, session: Session, message: str, skip_korean_review: bool = False) -> str | None:
+    async def run(self, session: Session, message: str) -> str | None:
         """
         Process a message with tool support.
 
         Args:
             session: User session
             message: User message
-            skip_korean_review: If True, skip Korean review (for English inputs)
         """
         if not message.strip():
             return None
@@ -233,7 +233,7 @@ Original message:
 
                     if consecutive_tool_errors >= 3:
                         logger.warning("3 consecutive tool errors, stopping loop")
-                        return "죄송합니다, 정보를 가져오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요."
+                        return "죄송합니다, 정보를 가져오는 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.\nSorry, there was an issue retrieving information. Please try again shortly."
 
                     continue  # Next iteration
 
@@ -248,21 +248,21 @@ Original message:
                         session.end()
                         # Return only the message before the marker
                         content = content.split(self.END_MARKER)[0].strip()
-                        return content if content else "대화를 종료합니다. 다시 대화하고 싶으시면 언제든지 말씀해주세요!"
+                        return content if content else "대화를 종료합니다. 다시 대화하고 싶으시면 언제든지 말씀해주세요!\nConversation ended. Feel free to mention me anytime to start a new one!"
 
-                    # Apply Korean quality review if enabled
-                    if not skip_korean_review:
+                    # Apply Korean quality review if output contains Korean
+                    if self._detect_korean(content):
                         content = await self._review_korean_quality(content)
                     else:
-                        logger.debug("Skipping Korean review (English input detected)")
+                        logger.debug("Skipping Korean review (English output)")
 
-                    logger.debug(f"AgentLoop response: {content[:100]}...")
+                    logger.info(f"AgentLoop response ({len(content)} chars):\n{content}")
                     return content
                 return None
 
             # Max iterations reached
             logger.warning("Max iterations reached")
-            return "죄송합니다, 처리 중 문제가 발생했습니다."
+            return "죄송합니다, 처리 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.\nSorry, something went wrong. Please try again shortly."
 
         except Exception as e:
             logger.error(f"AgentLoop error: {e}")
@@ -273,11 +273,10 @@ Original message:
         session: Session,
         message: str,
         max_retries: int = 1,
-        skip_korean_review: bool = False
     ) -> str | None:
         """Process a message with retry on failure."""
         for attempt in range(max_retries + 1):
-            result = await self.run(session, message, skip_korean_review=skip_korean_review)
+            result = await self.run(session, message)
             if result:
                 return result
             if attempt < max_retries:

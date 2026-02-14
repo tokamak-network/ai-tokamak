@@ -156,7 +156,7 @@ EOF
     echo "  Evaluating..."
     EVALUATION_FILE="${RESULTS_DIR}/evaluation_${QUESTION_NUM}.txt"
 
-    claude --dangerously-skip-permissions -p "@${EVAL_PROMPT_FILE}" --output-format text > "${EVALUATION_FILE}" 2>&1 || {
+    claude --dangerously-skip-permissions -p "Evaluate the AI response according to the criteria in the file above, and respond in exactly the requested format (Score/Deductions/Improvement Ideas). @${EVAL_PROMPT_FILE}" --output-format text > "${EVALUATION_FILE}" 2>&1 || {
         echo "${RED}  ✗ Evaluation failed${NC}"
         echo "Evaluation failed" > "${EVALUATION_FILE}"
     }

@@ -11,6 +11,7 @@ NC='\033[0m' # No Color
 # 결과 디렉토리 생성
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 RESULTS_DIR="evaluation_results_${TIMESTAMP}"
+HISTORY_FILE="evaluation_past_questions.txt"
 mkdir -p "${RESULTS_DIR}"
 
 echo "${BLUE}=== 토카막 응답 평가 시스템 ===${NC}"
@@ -18,17 +19,33 @@ echo "결과 디렉토리: ${RESULTS_DIR}\n"
 
 # Step 1: SYSTEM_PROMPT 생성
 echo "${YELLOW}[1/4] SYSTEM_PROMPT 생성 중...${NC}"
-tokamak show-system-prompt > "${RESULTS_DIR}/SYSTEM_PROMPT.md"
+tokamak show-system-prompt --all-patterns > "${RESULTS_DIR}/SYSTEM_PROMPT.md"
 echo "${GREEN}✓ SYSTEM_PROMPT.md 생성 완료${NC}\n"
 
 # Step 2: 질문 리스트 생성
 echo "${YELLOW}[2/4] 평가용 질문 생성 중...${NC}"
-claude --dangerously-skip-permissions -p "디스코드 AI 상담사를 테스트하기 위한 질문을 작성해야 합니다. @${RESULTS_DIR}/SYSTEM_PROMPT.md를 참고해서 질문 10개를 작성하세요. 한줄에 하나의 질문만 작성해야 하며, 질문 외에 다른 텍스트는 출력하지 마세요." --output-format text > "${RESULTS_DIR}/questions.txt"
+
+QUESTION_PROMPT="디스코드 AI 상담사를 테스트하기 위한 질문을 작성해야 합니다. @${RESULTS_DIR}/SYSTEM_PROMPT.md를 참고해서 질문 10개를 작성하세요. 한줄에 하나의 질문만 작성해야 하며, 질문 외에 다른 텍스트는 출력하지 마세요."
+
+# 이전 질문 이력이 있으면 중복 방지 지시 추가
+if [ -f "${HISTORY_FILE}" ] && [ -s "${HISTORY_FILE}" ]; then
+    PAST_COUNT=$(wc -l < "${HISTORY_FILE}" | tr -d ' ')
+    echo "  이전 질문 ${PAST_COUNT}개 참조 중..."
+    QUESTION_PROMPT="${QUESTION_PROMPT}
+
+아래는 이전 평가에서 사용한 질문들입니다. 이와 동일한 질문을 생성하지 마세요. 같은 주제를 다루더라도 다른 관점이나 표현을 사용하세요.
+
+--- 이전 질문 ---
+$(cat "${HISTORY_FILE}")
+--- 이전 질문 끝 ---"
+fi
+
+claude --dangerously-skip-permissions -p "${QUESTION_PROMPT}" --output-format text > "${RESULTS_DIR}/questions.txt"
 echo "${GREEN}✓ 질문 생성 완료${NC}\n"
 
-# Step 3: 각 질문에 대한 응답 생성 및 평가
-echo "${YELLOW}[3/4] 응답 생성 및 평가 중...${NC}"
-QUESTION_NUM=0
+# Step 3: 각 질문에 대한 응답 생성 및 평가 (5개 병렬)
+MAX_PARALLEL=5
+echo "${YELLOW}[3/4] 응답 생성 및 평가 중... (최대 ${MAX_PARALLEL}개 병렬)${NC}"
 REPORT_FILE="${RESULTS_DIR}/evaluation_report.md"
 
 # 리포트 헤더 작성
@@ -62,65 +79,45 @@ is_valid_question() {
     return 1
 }
 
-# 질문 파일을 한 줄씩 읽기
-while IFS= read -r question; do
-    # 빈 줄 건너뛰기
-    if [ -z "$question" ]; then
-        continue
-    fi
+# 단일 질문 처리 함수 (백그라운드에서 실행)
+process_question() {
+    local num=$1
+    local question=$2
+    local results_dir=$3
 
-    # Skip non-question lines
-    if ! is_valid_question "$question"; then
-        echo "${YELLOW}  건너뛰기: ${question}${NC}" >&2
-        continue
-    fi
-
-    QUESTION_NUM=$((QUESTION_NUM + 1))
-    echo "${BLUE}질문 ${QUESTION_NUM}: ${question}${NC}"
+    local response_file="${results_dir}/response_${num}.txt"
+    local eval_prompt_file="${results_dir}/eval_prompt_${num}.md"
+    local evaluation_file="${results_dir}/evaluation_${num}.txt"
+    local status_file="${results_dir}/status_${num}.txt"
 
     # 응답 생성
-    RESPONSE_FILE="${RESULTS_DIR}/response_${QUESTION_NUM}.txt"
-    echo "  응답 생성 중..."
-
-    # tokamak generate-response 실행하고 출력에서 응답 부분만 추출
-    tokamak generate-response "${question}" > "${RESPONSE_FILE}.raw" 2>&1 || {
-        echo "${RED}  ✗ 응답 생성 실패${NC}"
-        echo "## 질문 ${QUESTION_NUM}" >> "${REPORT_FILE}"
-        echo "" >> "${REPORT_FILE}"
-        echo "**질문**: ${question}" >> "${REPORT_FILE}"
-        echo "" >> "${REPORT_FILE}"
-        echo "**응답**: (생성 실패)" >> "${REPORT_FILE}"
-        echo "" >> "${REPORT_FILE}"
-        echo "**점수**: N/A" >> "${REPORT_FILE}"
-        echo "" >> "${REPORT_FILE}"
-        echo "---" >> "${REPORT_FILE}"
-        echo "" >> "${REPORT_FILE}"
-        continue
-    }
+    if ! tokamak generate-response "${question}" > "${response_file}.raw" 2>&1; then
+        echo "FAIL" > "${status_file}"
+        return
+    fi
 
     # 구분선 사이의 응답만 추출
-    sed -E -n '/^=+$/,/^=+$/p' "${RESPONSE_FILE}.raw" | sed '1d;$d' > "${RESPONSE_FILE}"
+    sed -E -n '/^=+$/,/^=+$/p' "${response_file}.raw" | sed '1d;$d' > "${response_file}"
 
-    RESPONSE=$(cat "${RESPONSE_FILE}")
-    echo "${GREEN}  ✓ 응답 생성 완료${NC}"
+    local response
+    response=$(cat "${response_file}")
 
     # 평가 프롬프트 생성
-    EVAL_PROMPT_FILE="${RESULTS_DIR}/eval_prompt_${QUESTION_NUM}.md"
-    cat > "${EVAL_PROMPT_FILE}" << EOF
+    cat > "${eval_prompt_file}" << EVALEOF
 # 응답 평가 요청
 
 아래 내용을 바탕으로 AI 응답의 품질을 평가해주세요.
 
 ## 시스템 프롬프트
 \`\`\`
-$(cat "${RESULTS_DIR}/SYSTEM_PROMPT.md")
+$(cat "${results_dir}/SYSTEM_PROMPT.md")
 \`\`\`
 
 ## 질문
 ${question}
 
 ## 생성된 응답
-${RESPONSE}
+${response}
 
 ## 평가 기준 (각 항목별 세부 체크)
 1. **디스코드 마크다운 호환성** (2.5점):
@@ -150,23 +147,89 @@ ${RESPONSE}
 개선 아이디어:
 - 구체적인 개선 방안 1
 - 구체적인 개선 방안 2
-EOF
+EVALEOF
 
     # Claude를 사용하여 평가 실행
-    echo "  평가 중..."
-    EVALUATION_FILE="${RESULTS_DIR}/evaluation_${QUESTION_NUM}.txt"
+    if ! claude --dangerously-skip-permissions -p "위 파일의 평가 기준에 따라 AI 응답을 평가하고, 요청된 형식(점수/감점 사항/개선 아이디어)으로 정확히 응답하세요. @${eval_prompt_file}" --output-format text > "${evaluation_file}" 2>&1; then
+        echo "평가 실패" > "${evaluation_file}"
+    fi
 
-    claude --dangerously-skip-permissions -p "@${EVAL_PROMPT_FILE}" --output-format text > "${EVALUATION_FILE}" 2>&1 || {
-        echo "${RED}  ✗ 평가 실패${NC}"
-        echo "평가 실패" > "${EVALUATION_FILE}"
-    }
+    echo "OK" > "${status_file}"
+}
 
-    EVALUATION=$(cat "${EVALUATION_FILE}")
-    echo "${GREEN}  ✓ 평가 완료${NC}\n"
+# 유효한 질문만 추출하여 번호 매기기
+QUESTIONS_NUMBERED="${RESULTS_DIR}/questions_numbered.txt"
+> "${QUESTIONS_NUMBERED}"
+QUESTION_NUM=0
 
-    # 리포트에 추가
-    cat >> "${REPORT_FILE}" << EOF
-## 질문 ${QUESTION_NUM}
+while IFS= read -r question; do
+    if [ -z "$question" ]; then
+        continue
+    fi
+
+    if ! is_valid_question "$question"; then
+        echo "${YELLOW}  건너뛰기: ${question}${NC}" >&2
+        continue
+    fi
+
+    QUESTION_NUM=$((QUESTION_NUM + 1))
+    echo "${QUESTION_NUM}|${question}" >> "${QUESTIONS_NUMBERED}"
+done < "${RESULTS_DIR}/questions.txt"
+
+TOTAL_QUESTIONS=${QUESTION_NUM}
+echo "${BLUE}총 ${TOTAL_QUESTIONS}개 질문 처리 예정${NC}\n"
+
+# 이번 질문들을 이력 파일에 추가
+cut -d'|' -f2- "${QUESTIONS_NUMBERED}" >> "${HISTORY_FILE}"
+
+# 병렬 실행
+RUNNING=0
+while IFS='|' read -r num question; do
+    echo "${BLUE}[시작] 질문 ${num}/${TOTAL_QUESTIONS}: ${question}${NC}"
+
+    process_question "$num" "$question" "$RESULTS_DIR" &
+
+    RUNNING=$((RUNNING + 1))
+
+    # MAX_PARALLEL에 도달하면 하나가 끝날 때까지 대기
+    if [ "$RUNNING" -ge "$MAX_PARALLEL" ]; then
+        wait -n 2>/dev/null || wait  # wait -n은 bash 4.3+, 실패 시 전체 대기
+        RUNNING=$((RUNNING - 1))
+    fi
+done < "${QUESTIONS_NUMBERED}"
+
+# 남은 백그라운드 작업 모두 대기
+wait
+echo "${GREEN}✓ 모든 응답 생성 및 평가 완료${NC}\n"
+
+# 결과를 순서대로 리포트에 취합
+for num in $(seq 1 ${TOTAL_QUESTIONS}); do
+    question=$(grep "^${num}|" "${QUESTIONS_NUMBERED}" | cut -d'|' -f2-)
+    status_file="${RESULTS_DIR}/status_${num}.txt"
+    response_file="${RESULTS_DIR}/response_${num}.txt"
+    evaluation_file="${RESULTS_DIR}/evaluation_${num}.txt"
+
+    STATUS=$(cat "${status_file}" 2>/dev/null || echo "FAIL")
+
+    if [ "$STATUS" = "FAIL" ]; then
+        cat >> "${REPORT_FILE}" << EOF
+## 질문 ${num}
+
+**질문**: ${question}
+
+**응답**: (생성 실패)
+
+**점수**: N/A
+
+---
+
+EOF
+        echo "${RED}  ✗ 질문 ${num} 실패${NC}"
+    else
+        RESPONSE=$(cat "${response_file}")
+        EVALUATION=$(cat "${evaluation_file}")
+        cat >> "${REPORT_FILE}" << EOF
+## 질문 ${num}
 
 **질문**: ${question}
 
@@ -181,8 +244,9 @@ ${EVALUATION}
 ---
 
 EOF
-
-done < "${RESULTS_DIR}/questions.txt"
+        echo "${GREEN}  ✓ 질문 ${num} 완료${NC}"
+    fi
+done
 
 # Step 4: 요약 통계 생성
 echo "${YELLOW}[4/4] 요약 통계 생성 중...${NC}"

@@ -1,62 +1,45 @@
-# AI_Tokamak
+<p align="center">
+  <img src="profile.png" width="200" alt="AI_Tokamak" />
+</p>
 
-A Discord bot for blockchain/crypto community interaction
+<h1 align="center">AI_Tokamak</h1>
 
-## Features
+<p align="center">
+  <strong>Tokamak Network Community Assistant</strong>
+</p>
 
-- Channel monitoring and AI-powered conversation responses
-- LLM-based intelligent agent with tool support
-- Session-based conversation history management
+---
 
-## Installation
+Hello! I'm AI_Tokamak, your friendly community assistant for Tokamak Network — an on-demand Ethereum Layer 2 platform.
+
+I was created to help community members like you by providing accurate, up-to-date information about Tokamak's technology, ecosystem, and developments. Whether you're curious about $TOKAMAK staking, TRH (Tokamak Rollup Hub), or how to deploy your own L2, I'm here to help guide you.
+
+## Setup
 
 ```bash
-# Using uv
+# Install dependencies
 uv sync
 
-# Using pip
-pip install -e .
-```
-
-## Configuration
-
-Copy `config.example.json` to `config.json` and fill in the required values.
-
-```bash
+# Copy and configure
 cp config.example.json config.json
-```
 
-Key settings:
-- `discord.token`: Discord bot token
-- `discord.monitor_channel_ids`: List of channel IDs to monitor
-- `providers.openrouter.api_key`: OpenRouter API key (or use anthropic/openai)
-
-## Usage
-
-```bash
 # Run the bot
 tokamak run
-
-# Test Discord connection
-tokamak test-discord
 ```
 
-## Deployment
+## Environment Variables (Railway)
 
-### Railway Deployment
+| Variable | Required | Description |
+|---|---|---|
+| `DISCORD_TOKEN` | Yes | Discord bot token |
+| `OPENROUTER_API_KEY` | Yes | OpenRouter API key |
+| `MONITOR_CHANNEL_IDS` | Yes | Comma-separated channel IDs |
+| `ALLOW_GUILDS` | No | Comma-separated guild IDs |
+| `AGENT_MODEL` | No | LLM model (default: `qwen3-235b`) |
+| `LOG_LEVEL` | No | Log level (default: `INFO`) |
 
-Deploy to Railway with environment variables (recommended for production):
+## Links
 
-1. Push your code to GitHub
-2. Create a new Railway project and connect your repo
-3. Set required environment variables:
-   - `DISCORD_TOKEN`: Your Discord bot token
-   - `OPENROUTER_API_KEY`: Your OpenRouter API key
-   - `MONITOR_CHANNEL_IDS`: Comma-separated channel IDs (e.g., `123456,789012`)
-4. Railway will automatically deploy using `railway.toml` configuration
-
-See [RAILWAY_DEPLOY.md](./RAILWAY_DEPLOY.md) for detailed deployment instructions.
-
-## License
-
-MIT
+- [Tokamak Network](https://tokamak.network)
+- [Documentation](https://docs.tokamak.network)
+- [Rollup Hub](https://rolluphub.tokamak.network)

@@ -40,6 +40,27 @@ class TestFormatDiscordMessage:
         assert result == "[Docs](<https://docs.tokamak.network>)"
         assert "<<" not in result
 
+    def test_url_as_link_text_simplified(self):
+        """When link text is a URL itself, simplify to <URL> for Discord compatibility."""
+        result = format_discord_message(
+            "[https://docs.tokamak.network](https://docs.tokamak.network)"
+        )
+        assert result == "<https://docs.tokamak.network>"
+
+    def test_url_as_link_text_different_url(self):
+        """Even if text and href differ, URL text should be simplified."""
+        result = format_discord_message(
+            "[https://docs.tokamak.network/old](https://docs.tokamak.network/new)"
+        )
+        assert result == "<https://docs.tokamak.network/new>"
+
+    def test_descriptive_link_text_preserved(self):
+        """Normal descriptive text should keep [text](<url>) format."""
+        result = format_discord_message(
+            "[공식 문서](https://docs.tokamak.network)"
+        )
+        assert result == "[공식 문서](<https://docs.tokamak.network>)"
+
     def test_horizontal_rule_removed(self):
         result = format_discord_message("above\n---\nbelow")
         assert "---" not in result
@@ -47,6 +68,16 @@ class TestFormatDiscordMessage:
     def test_multiple_newlines_collapsed(self):
         result = format_discord_message("a\n\n\n\nb")
         assert result == "a\n\nb"
+
+    def test_trailing_spaces_stripped(self):
+        """P1-10: Trailing spaces should be removed from each line."""
+        result = format_discord_message("Line 1  \nLine 2   \nLine 3")
+        assert result == "Line 1\nLine 2\nLine 3"
+
+    def test_trailing_spaces_in_multiline(self):
+        result = format_discord_message("**핵심 기능**:  \n• 항목 1  \n• 항목 2")
+        assert "  \n" not in result
+        assert "  " not in result
 
 
 class TestUrlWithKoreanParticle:

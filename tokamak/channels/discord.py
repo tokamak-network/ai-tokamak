@@ -61,11 +61,19 @@ def format_discord_message(content: str) -> str:
 
     # Step 4: Restore masked links with [text](<url>) format to prevent embeds
     for i, (text, url) in enumerate(masked_links):
-        content = content.replace(f'__MASKED_LINK_{i}__', f'[{text}](<{url}>)')
+        # If link text is a URL itself (e.g. [https://...](https://...)),
+        # Discord won't render it as a masked link. Simplify to <URL>.
+        if text.startswith(("http://", "https://")):
+            content = content.replace(f'__MASKED_LINK_{i}__', f'<{url}>')
+        else:
+            content = content.replace(f'__MASKED_LINK_{i}__', f'[{text}](<{url}>)')
 
     # Step 5: Restore inline code spans
     for i, span in enumerate(code_spans):
         content = content.replace(f'__CODE_SPAN_{i}__', span)
+
+    # Strip trailing spaces from each line
+    content = re.sub(r' +$', '', content, flags=re.MULTILINE)
 
     # Replace multiple consecutive newlines with double newline (single blank line)
     content = re.sub(r'\n{3,}', '\n\n', content)
@@ -312,7 +320,7 @@ class DiscordChannel(BaseChannel):
                     logger.error(f"Error processing message: {e}")
                     try:
                         await message.reply(
-                            "죄송합니다, 응답 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+                            "죄송합니다, 응답 처리 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.\nSorry, an error occurred. Please try again shortly."
                         )
                     except Exception:
                         pass

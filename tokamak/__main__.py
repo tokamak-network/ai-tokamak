@@ -1,9 +1,26 @@
 """CLI entry point for tokamak."""
 
 import asyncio
+import os
+import signal
+import sys
 
 import typer
 from loguru import logger
+
+
+def _configure_logging():
+    """Configure loguru for production (Railway) or local development."""
+    logger.remove()  # Remove default handler
+    log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+    logger.add(
+        sys.stderr,
+        level=log_level,
+        format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan> - <level>{message}</level>",
+    )
+
+
+_configure_logging()
 
 app = typer.Typer(
     name="tokamak",
@@ -27,13 +44,25 @@ def run(
 
     bot = TokamakApp(config=config, data_dir=Path(data_dir))
 
+    loop = asyncio.new_event_loop()
+
+    # Handle SIGTERM (Railway sends this on deploy/restart)
+    def _handle_sigterm(sig, frame):
+        logger.info("Received SIGTERM, shutting down gracefully...")
+        loop.call_soon_threadsafe(loop.stop)
+
+    signal.signal(signal.SIGTERM, _handle_sigterm)
+
     try:
-        asyncio.run(bot.start())
+        loop.run_until_complete(bot.start())
     except KeyboardInterrupt:
         logger.info("Shutdown requested")
     except Exception as e:
         logger.error(f"Fatal error: {e}")
         raise SystemExit(1)
+    finally:
+        loop.run_until_complete(bot.stop())
+        loop.close()
 
 
 @app.command("test-discord")
@@ -136,6 +165,7 @@ def generate_response(
 def show_system_prompt(
     config_path: str = typer.Option("config.json", "--config", "-c", help="Config file path"),
     data_dir: str = typer.Option("data", "--data", "-d", help="Data directory path"),
+    all_patterns: bool = typer.Option(False, "--all-patterns", help="Include all answer patterns"),
 ):
     """Display the system prompt used by the agent."""
     from pathlib import Path
@@ -143,11 +173,19 @@ def show_system_prompt(
     from tokamak.config import load_config_or_exit
 
     config = load_config_or_exit(config_path)
-    
+
     # Initialize app to get system prompt
     bot = TokamakApp(config=config, data_dir=Path(data_dir))
-    system_prompt = bot.agent.system_prompt
-    
+
+    if all_patterns:
+        from tokamak.agent.prompts import build_system_prompt as _build
+        skills_summary = None
+        if bot.agent.skills_loader:
+            skills_summary = bot.agent.skills_loader.build_skills_summary()
+        system_prompt = _build(skills_summary, include_all_patterns=True)
+    else:
+        system_prompt = bot.agent.system_prompt
+
     # Print only the system prompt (no decorations)
     print(system_prompt)
 

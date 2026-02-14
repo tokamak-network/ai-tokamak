@@ -36,8 +36,23 @@ def main():
     if not monitor_channel_ids:
         print("⚠️  Warning: MONITOR_CHANNEL_IDS is empty. Bot will not monitor any channels.")
 
+    # Parse allow guild IDs
+    allow_guilds_str = os.environ.get("ALLOW_GUILDS", "")
+    allow_guilds = []
+    if allow_guilds_str:
+        try:
+            allow_guilds = [
+                int(x.strip())
+                for x in allow_guilds_str.split(",")
+                if x.strip()
+            ]
+        except ValueError as e:
+            print(f"❌ Error parsing ALLOW_GUILDS: {e}", file=sys.stderr)
+            sys.exit(1)
+
     # Optional settings
     agent_model = os.environ.get("AGENT_MODEL", "qwen3-235b")
+    openrouter_api_base = os.environ.get("OPENROUTER_API_BASE", "")
     conversation_timeout = int(os.environ.get("CONVERSATION_TIMEOUT_SECONDS", "300"))
     max_messages = int(os.environ.get("MAX_MESSAGES", "100"))
 
@@ -46,7 +61,7 @@ def main():
         "discord": {
             "token": discord_token,
             "monitor_channel_ids": monitor_channel_ids,
-            "allow_guilds": [],
+            "allow_guilds": allow_guilds,
             "conversation_timeout_seconds": conversation_timeout
         },
         "session": {
@@ -54,7 +69,8 @@ def main():
         },
         "providers": {
             "openrouter": {
-                "api_key": openrouter_api_key
+                "api_key": openrouter_api_key,
+            **({"api_base": openrouter_api_base} if openrouter_api_base else {})
             }
         },
         "agent": {
@@ -71,6 +87,7 @@ def main():
     print("✓ config.json created successfully from environment variables")
     print(f"  - Discord token: {'*' * 8}{discord_token[-4:]}")
     print(f"  - Monitor channels: {monitor_channel_ids}")
+    print(f"  - Allow guilds: {allow_guilds or 'all'}")
     print(f"  - Agent model: {agent_model}")
 
 

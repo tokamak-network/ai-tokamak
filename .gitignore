@@ -42,5 +42,9 @@ ENV/
 .coverage
 htmlcov/
 
+# Evaluation results
+evaluation_results_*/
+evaluation_past_questions.txt
+
 # Logs
 *.log
