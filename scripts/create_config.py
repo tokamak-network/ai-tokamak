@@ -8,6 +8,12 @@ import sys
 
 def main():
     """Generate config.json from environment variables."""
+    # Debug: show which required env vars are present
+    required_vars = ["DISCORD_TOKEN", "OPENROUTER_API_KEY", "MONITOR_CHANNEL_IDS"]
+    for var in required_vars:
+        present = "✓" if os.environ.get(var) else "✗"
+        print(f"  {present} {var}")
+
     # Required environment variables
     discord_token = os.environ.get("DISCORD_TOKEN", "")
     if not discord_token:
