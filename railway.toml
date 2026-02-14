@@ -2,6 +2,6 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "python scripts/create_config.py && tokamak run"
+startCommand = "python scripts/create_config.py && python -m tokamak run"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
