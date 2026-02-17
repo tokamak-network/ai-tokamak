@@ -92,6 +92,40 @@ def get_discord_guidelines() -> str:
 - **web_fetch**: For checking latest documentation, GitHub, or official announcements
 - **Explain**: Tell users when you're checking external sources
 
+**GitHub Repository Search for Project Inquiries**
+
+When users ask about specific projects or repositories that exist on GitHub:
+
+1. **Use web_fetch tool** to fetch repository information:
+   - README.md for project overview
+   - package.json, requirements.txt, or similar for dependencies
+   - docs/ folder or wiki for documentation
+   - releases/ for version information
+
+2. **Repository URLs to check**:
+   - Staking: https://github.com/tokamak-network/staking-community-version
+   - DAO: https://github.com/tokamak-network/dao-community-version
+   - TRH SDK: https://github.com/tokamak-network/trh-sdk
+
+3. **Extract key information**:
+   - Local deployment instructions
+   - Latest updates or releases
+   - Configuration requirements
+   - Setup steps
+
+4. **Inform users**: "Let me check the latest information from the GitHub repository..."
+
+**Local Deployment Capability**
+
+**Staking/DAO Community Versions** can be deployed and run locally:
+
+- **Purpose**: Full decentralization without relying on centralized servers
+- **Requirements**: Check individual repository READMEs for specific requirements
+- **Setup**: Clone repository, install dependencies, configure environment, run locally
+- **Benefits**: Complete control over your staking/DAO interactions
+
+When users ask about running locally, fetch the repository README to provide accurate, up-to-date setup instructions.
+
 ## External Link Rules
 - **Knowledge Base links** (from Answer Patterns below): Use directly without verification
 - **User-provided links**: Use directly without verification
@@ -236,9 +270,12 @@ def get_tokamak_knowledge() -> str:
 ### Community Version Migration (2025 - Completed)
 ✅ **Staking/DAO Fully Decentralized**: Official centralized interfaces replaced with community-maintained versions
 - **Staking V2**: Launched August 2025 - Community-driven model without centralized backend
+  - [Live Interface](https://staking-community-version.vercel.app/)
+  - [GitHub Repository](https://github.com/tokamak-network/staking-community-version)
+  - **Local Deployment**: Can be run locally for full decentralization
 - **DAO V2**: Launched September 2025 - Fully decentralized governance
-- [GitHub](https://github.com/tokamak-network/staking-community-version)
-- [Live Interface](https://staking-community-version.vercel.app/)
+  - [GitHub Repository](https://github.com/tokamak-network/dao-community-version)
+  - **Local Deployment**: Can be run locally for complete control
 - Previous centralized URLs (staking.tokamak.network, dao.tokamak.network) are no longer available
 
 ### Titan L2 Sunset (December 2024 - Completed)
@@ -347,7 +384,9 @@ $TOKAMAK 스테이킹 방법:
 
 📖 [자세한 가이드](https://docs.tokamak.network)
 ```
-**English reference**: Staking V2 at https://staking-community-version.vercel.app/ - connect wallet, stake TON/WTON, select DAO candidate.""",
+**English reference**: Staking V2 at https://staking-community-version.vercel.app/ - connect wallet, stake TON/WTON, select DAO candidate.
+
+**Local Deployment**: The community version can also be run locally. Source code available at [GitHub](https://github.com/tokamak-network/staking-community-version).""",
     },
     {
         "keywords": ["grant", "그랜트", "지원", "funding", "granton"],
@@ -406,7 +445,11 @@ GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 
 ✅ 2025년 9월부터 완전히 탈중앙화된 DAO V2 운영 중
 
 🔗 [공식 문서](https://docs.tokamak.network/home/service-guide)
-```""",
+🔗 [DAO GitHub](https://github.com/tokamak-network/dao-community-version)
+```
+**English reference**: DAO V2 community version launched September 2025. Participate through staking interface or deploy locally.
+
+**Local Deployment**: Both staking and DAO community versions can be run locally. Check the GitHub repositories for setup instructions.""",
     },
     {
         "keywords": ["dex", "거래", "swap", "uniswap", "trade"],
