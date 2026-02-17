@@ -11,6 +11,9 @@ from tokamak.agent.tools import ToolRegistry, WebFetchTool
 from tokamak.bus import MessageBus
 from tokamak.channels import DiscordChannel
 from tokamak.config import Config
+from tokamak.cron.service import CronService
+from tokamak.cron.types import CronSchedule
+from tokamak.news import NewsFeedService, NewsFetcher, NewsSummarizer
 from tokamak.providers import OpenAICompatibleProvider
 from tokamak.session import Session, SessionManager
 
@@ -63,6 +66,11 @@ class TokamakApp:
         )
 
         self._running = False
+        self.cron: CronService | None = None
+        self.news_feed: NewsFeedService | None = None
+
+        if config.news_feed.enabled:
+            self.news_feed = self._create_news_feed()
 
     def _create_provider(self) -> OpenAICompatibleProvider:
         """Create LLM provider from config."""
@@ -94,6 +102,24 @@ class TokamakApp:
         registry = ToolRegistry()
         registry.register(WebFetchTool())
         return registry
+
+    def _create_news_feed(self) -> NewsFeedService:
+        """Create news feed service."""
+        news_config = self.config.news_feed
+        fetcher = NewsFetcher(sources=news_config.news_sources)
+        summarizer = NewsSummarizer(
+            provider=self.provider,
+            model=news_config.summary_model or self.config.agent.model,
+        )
+        return NewsFeedService(
+            fetcher=fetcher,
+            summarizer=summarizer,
+            bus=self.bus,
+            state_path=self.data_dir / "news_state.json",
+            korean_channel_id=news_config.korean_channel_id,
+            english_channel_id=news_config.english_channel_id,
+            max_news_per_fetch=news_config.max_news_per_fetch,
+        )
 
     async def _handle_message(self, session: Session, content: str) -> str | None:
         """
@@ -132,14 +158,27 @@ class TokamakApp:
         logger.info("Starting Tokamak bot...")
         self._running = True
 
-        # Start message bus dispatcher
         bus_task = asyncio.create_task(self.bus.dispatch_outbound())
         cleanup_task = asyncio.create_task(self._periodic_cleanup())
 
-        # Subscribe Discord to outbound messages
         self.bus.subscribe_outbound("discord", self.discord.send)
 
-        # Start Discord (this blocks until disconnected)
+        if self.news_feed:
+            news_feed = self.news_feed
+            self.cron = CronService(
+                store_path=self.data_dir / "cron.json",
+                on_job=lambda job: news_feed.run(job),
+            )
+            await self.cron.start()
+            self.cron.add_job(
+                name="news_feed",
+                schedule=CronSchedule(
+                    kind="every",
+                    every_ms=self.config.news_feed.interval_seconds * 1000,
+                ),
+                message="news_feed",
+            )
+
         try:
             await self.discord.start()
         except KeyboardInterrupt:
@@ -155,6 +194,9 @@ class TokamakApp:
             return
         logger.info("Stopping Tokamak bot...")
         self._running = False
+
+        if self.cron:
+            self.cron.stop()
 
         self.bus.stop()
         await self.discord.stop()

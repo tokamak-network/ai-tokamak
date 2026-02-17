@@ -17,5 +17,16 @@
     "model": "qwen3-235b",
     "enable_korean_review": true,
     "korean_review_model": null
+  },
+  "news_feed": {
+    "enabled": false,
+    "interval_seconds": 300,
+    "news_sources": [
+      "https://www.coindesk.com/arc/outboundfeeds/rss/"
+    ],
+    "korean_channel_id": null,
+    "english_channel_id": null,
+    "max_news_per_fetch": 15,
+    "summary_model": null
   }
 }

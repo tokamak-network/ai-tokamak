@@ -72,6 +72,45 @@ class AgentConfig(BaseModel):
     )
 
 
+class NewsFeedConfig(BaseModel):
+    """News feed configuration for automated crypto news summaries."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable automated news feed"
+    )
+    interval_seconds: int = Field(
+        default=300,
+        ge=30,
+        description="News fetch interval in seconds (default 5 min)"
+    )
+
+    news_sources: list[str] = Field(
+        default_factory=lambda: [
+            "https://www.coindesk.com/arc/outboundfeeds/rss/",
+        ],
+        description="RSS feed URLs for news collection"
+    )
+    korean_channel_id: int | None = Field(
+        default=None,
+        description="Discord channel ID for Korean summaries"
+    )
+    english_channel_id: int | None = Field(
+        default=None,
+        description="Discord channel ID for English summaries"
+    )
+    max_news_per_fetch: int = Field(
+        default=15,
+        ge=5,
+        le=50,
+        description="Maximum news items to include in each summary"
+    )
+    summary_model: str | None = Field(
+        default=None,
+        description="Model for summarization (defaults to agent model)"
+    )
+
+
 class Config(BaseModel):
     """Root configuration."""
 
@@ -79,3 +118,4 @@ class Config(BaseModel):
     session: SessionConfig = Field(default_factory=SessionConfig)
     providers: ProvidersConfig = Field(default_factory=ProvidersConfig)
     agent: AgentConfig = Field(default_factory=AgentConfig)
+    news_feed: NewsFeedConfig = Field(default_factory=NewsFeedConfig)
