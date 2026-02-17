@@ -153,6 +153,7 @@ class DiscordChannel(BaseChannel):
         intents = Intents.default()
         intents.message_content = True
         intents.guilds = True
+        intents.members = True
 
         self._client = discord.Client(intents=intents)
         self._setup_events()
@@ -412,11 +413,8 @@ class DiscordChannel(BaseChannel):
         return channel_id in self.admin_handler.config.admin_channel_ids
 
     async def _handle_admin_command(self, message: Message, content: str) -> None:
-        """Handle admin command from designated channel."""
+        """Handle admin message from designated channel."""
         if not self.admin_handler:
-            return
-
-        if not content.startswith(self.admin_handler.config.command_prefix):
             return
 
         await self.admin_handler.handle(message)
