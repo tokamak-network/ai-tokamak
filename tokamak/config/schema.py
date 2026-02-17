@@ -83,13 +83,12 @@ class NewsFeedConfig(BaseModel):
 
 
 class AdminConfig(BaseModel):
-    """Admin configuration for commands."""
+    """Admin configuration for LLM-based tool calling."""
 
     admin_channel_ids: list[int] = Field(
         default_factory=list,
         description="Channel IDs where admin commands are accepted",
     )
-    command_prefix: str = Field(default="!", description="Prefix for admin commands")
 
 
 class Config(BaseModel):

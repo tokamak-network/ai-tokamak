@@ -35,8 +35,6 @@ Prepare the following items before deployment.
 | Variable | Description | Default |
 |---|---|---|
 | `ALLOW_GUILDS` | Server IDs where bot operates (comma-separated). Empty = all servers | _(empty = all servers)_ |
-| `ADMIN_USER_IDS` | Discord User IDs for admin commands (comma-separated) | _(empty = no admins)_ |
-| `ADMIN_COMMAND_PREFIX` | Prefix for admin DM commands | `!` |
 | `AGENT_MODEL` | LLM model identifier | `qwen3-235b` |
 | `OPENROUTER_API_BASE` | API endpoint URL. Set for other OpenAI-compatible servers (LiteLLM, vLLM, etc.) | _(OpenRouter default)_ |
 | `CONVERSATION_TIMEOUT_SECONDS` | Conversation timeout (seconds). Conversation ends after this time from last message | `300` |
@@ -61,25 +59,33 @@ Prepare the following items before deployment.
 | Variable | Description | Default |
 |---|---|---|
 | `ADMIN_CHANNEL_IDS` | Channel IDs where admin commands are accepted (comma-separated) | _(empty = no admin commands)_ |
-| `ADMIN_COMMAND_PREFIX` | Prefix for admin commands | `!` |
 
 > To enable admin commands, set `ADMIN_CHANNEL_IDS` with the channel ID(s) where admins can execute commands.
 
 ## Admin Commands
 
-If `ADMIN_CHANNEL_IDS` is configured, anyone in those channels can use these commands:
+If `ADMIN_CHANNEL_IDS` is configured, anyone in those channels can use natural language commands processed by LLM:
 
-| Command | Description |
+### Available Actions
+
+| Action | Example Request |
 |---|---|
-| `!status` | Show bot status (sessions, conversations) |
-| `!sessions [limit]` | List active sessions |
-| `!clear <session_key>` | Clear a specific session |
-| `!broadcast <channel_id>` | Send message to a channel (message wrapped in ``` code block) |
-| `!timeout <user_id> <minutes> [reason]` | Timeout a user (max 7 days = 10080 minutes) |
-| `!untimeout <user_id>` | Remove timeout from a user |
-| `!help` | Show available commands |
+| Search user | "Find user 'John'" |
+| Search channel | "Search for 'announcements' channel" |
+| Timeout user | "Timeout user 'John' for 1 hour" |
+| Remove timeout | "Remove timeout from 'John'" |
+| Send message to channel | "Send 'Hello' to 'announcements' channel" |
+| Check bot status | "What's the bot status?" |
+| List active sessions | "Show me active sessions" |
+| Clear session | "Clear session discord:123:456" |
 
-> To get a Channel ID, enable Developer Mode in Discord Settings > Advanced, then right-click the channel → Copy Channel ID.
+### How It Works
+
+1. Send a natural language message in the admin channel
+2. LLM analyzes your request and calls appropriate tools
+3. Results are returned as natural language response
+
+> You can reference users/channels by name (no need to look up IDs). The system will search by display name, username, or nickname.
 
 ## How It Works
 
