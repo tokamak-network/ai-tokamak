@@ -69,7 +69,9 @@ class NewsSummarizer:
                     )
                     await asyncio.sleep(delay)
                 else:
-                    logger.error(f"Failed to generate news summary after {MAX_RETRIES} retries: {e}")
+                    logger.error(
+                        f"Failed to generate news summary after {MAX_RETRIES} retries: {e}"
+                    )
 
         return None
 

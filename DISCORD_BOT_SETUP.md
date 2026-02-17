@@ -35,13 +35,15 @@ The bot requires the following permissions to function properly:
 | **View Channels** | Yes | Access monitoring channels |
 | **Send Messages** | Yes | Send response messages |
 | **Read Message History** | Yes | Check previous conversation context |
+| **Mention @everyone, @here, and All Roles** | Yes | Use @everyone in broadcast admin command |
+| **Moderate Members** | Yes | Timeout users via admin command |
 
-**Permission Integer**: `68608`
+**Permission Integer**: `1099499294720`
 
 ### Invite URL Format
 
 ```
-https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=68608&scope=bot
+https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=1099499294720&scope=bot
 ```
 
 Replace `YOUR_CLIENT_ID` with the Application ID from **OAuth2** tab or **General Information** tab.
@@ -62,6 +64,17 @@ Replace `YOUR_CLIENT_ID` with the Application ID from **OAuth2** tab or **Genera
 
 - [ ] Bot Token copied → Set in Railway `DISCORD_TOKEN`
 - [ ] **Message Content Intent** enabled
-- [ ] Bot Permissions: View Channels, Send Messages, Read Message History
+- [ ] Bot Permissions: View Channels, Send Messages, Read Message History, Mention @everyone
 - [ ] Bot invited to server
 - [ ] Channel ID obtained → Set in Railway `MONITOR_CHANNEL_IDS`
+- [ ] (Optional) Admin Channel ID → Set in Railway `ADMIN_CHANNEL_IDS` for admin commands
+
+## 6. Get Admin Channel ID (for Admin Commands)
+
+To enable admin commands:
+
+1. Enable **Developer Mode** in Discord **Settings** > **Advanced**
+2. Right-click the channel for admin commands → **Copy Channel ID**
+3. Enter in Railway `ADMIN_CHANNEL_IDS` environment variable
+
+> Anyone in the admin channel can execute admin commands. See RAILWAY_DEPLOY.md for available commands.

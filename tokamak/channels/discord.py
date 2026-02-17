@@ -3,7 +3,7 @@
 import asyncio
 import re
 import time
-from typing import Callable, Awaitable
+from typing import TYPE_CHECKING, Awaitable, Callable
 
 import discord
 from discord import Intents, Message
@@ -14,6 +14,9 @@ from tokamak.bus.queue import MessageBus
 from tokamak.channels.base import BaseChannel
 from tokamak.config.schema import DiscordConfig
 from tokamak.session import Session, SessionManager
+
+if TYPE_CHECKING:
+    from tokamak.admin.handler import AdminHandler
 
 
 def format_discord_message(content: str) -> str:
@@ -27,18 +30,18 @@ def format_discord_message(content: str) -> str:
         Formatted message content
     """
     # Remove horizontal rules (---)
-    content = re.sub(r'\n---+\n', '\n\n', content)
-    content = re.sub(r'^---+$', '', content, flags=re.MULTILINE)
+    content = re.sub(r"\n---+\n", "\n\n", content)
+    content = re.sub(r"^---+$", "", content, flags=re.MULTILINE)
 
     # Step 1: Protect masked links [text](url) by replacing with placeholders
     masked_links = []
-    markdown_link_pattern = r'\[([^\]]+)\]\(([^\)]+)\)'
+    markdown_link_pattern = r"\[([^\]]+)\]\(([^\)]+)\)"
 
     def protect_masked_link(match):
         text = match.group(1)
-        url = match.group(2).strip('<>') # strip existing angle brackets if any
+        url = match.group(2).strip("<>")  # strip existing angle brackets if any
         masked_links.append((text, url))
-        return f'__MASKED_LINK_{len(masked_links) - 1}__'
+        return f"__MASKED_LINK_{len(masked_links) - 1}__"
 
     content = re.sub(markdown_link_pattern, protect_masked_link, content)
 
@@ -47,14 +50,14 @@ def format_discord_message(content: str) -> str:
 
     def protect_code_span(match):
         code_spans.append(match.group(0))
-        return f'__CODE_SPAN_{len(code_spans) - 1}__'
+        return f"__CODE_SPAN_{len(code_spans) - 1}__"
 
-    content = re.sub(r'`[^`]+`', protect_code_span, content)
+    content = re.sub(r"`[^`]+`", protect_code_span, content)
 
     # Step 3: Convert bare URLs to <URL> format (to prevent embeds)
     # Only match valid URL characters (ASCII) to avoid capturing Korean particles, backticks, etc.
     def replace_bare_urls(match):
-        return f'<{match.group(0)}>'
+        return f"<{match.group(0)}>"
 
     url_pattern = r"(?<!<)https?://[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+(?!>)"
     content = re.sub(url_pattern, replace_bare_urls, content)
@@ -64,19 +67,19 @@ def format_discord_message(content: str) -> str:
         # If link text is a URL itself (e.g. [https://...](https://...)),
         # Discord won't render it as a masked link. Simplify to <URL>.
         if text.startswith(("http://", "https://")):
-            content = content.replace(f'__MASKED_LINK_{i}__', f'<{url}>')
+            content = content.replace(f"__MASKED_LINK_{i}__", f"<{url}>")
         else:
-            content = content.replace(f'__MASKED_LINK_{i}__', f'[{text}](<{url}>)')
+            content = content.replace(f"__MASKED_LINK_{i}__", f"[{text}](<{url}>)")
 
     # Step 5: Restore inline code spans
     for i, span in enumerate(code_spans):
-        content = content.replace(f'__CODE_SPAN_{i}__', span)
+        content = content.replace(f"__CODE_SPAN_{i}__", span)
 
     # Strip trailing spaces from each line
-    content = re.sub(r' +$', '', content, flags=re.MULTILINE)
+    content = re.sub(r" +$", "", content, flags=re.MULTILINE)
 
     # Replace multiple consecutive newlines with double newline (single blank line)
-    content = re.sub(r'\n{3,}', '\n\n', content)
+    content = re.sub(r"\n{3,}", "\n\n", content)
 
     return content
 
@@ -122,6 +125,7 @@ class DiscordChannel(BaseChannel):
         bus: MessageBus,
         session_manager: SessionManager,
         on_message_callback: Callable[[Session, str], Awaitable[str | None]] | None = None,
+        admin_handler: "AdminHandler | None" = None,
     ):
         """
         Initialize Discord channel.
@@ -131,11 +135,13 @@ class DiscordChannel(BaseChannel):
             bus: Message bus for communication
             session_manager: Session manager for conversation history
             on_message_callback: Async callback(session, content) -> response
+            admin_handler: Handler for admin DM commands
         """
         super().__init__(config, bus)
         self.config: DiscordConfig = config
         self.session_manager = session_manager
         self.on_message_callback = on_message_callback
+        self.admin_handler = admin_handler
 
         # Active conversation tracking: {user_key: last_message_timestamp}
         self._active_conversations: dict[str, float] = {}
@@ -240,7 +246,7 @@ class DiscordChannel(BaseChannel):
         if message.author == self._client.user:
             return
 
-        # Ignore DMs (no guild)
+        # Ignore DMs
         if not message.guild:
             return
 
@@ -248,15 +254,22 @@ class DiscordChannel(BaseChannel):
         if not self._is_allowed_guild(message.guild.id):
             return
 
+        user_id = message.author.id
+        content = message.content.strip()
+
+        # Check for admin command in designated channel
+        if self._is_admin_channel(message.channel.id):
+            await self._handle_admin_command(message, content)
+            return
+
         # Check if channel is monitored
         if not self._is_monitored_channel(message.channel.id):
             return
 
         guild_id = message.guild.id
-        user_id = message.author.id
+
         user_key = self._get_user_key(guild_id, user_id)
         session_key = self._get_session_key(guild_id, user_id)
-        content = message.content.strip()
 
         # Skip empty messages
         if not content:
@@ -315,7 +328,9 @@ class DiscordChannel(BaseChannel):
                         if session.is_ended:
                             if user_key in self._active_conversations:
                                 del self._active_conversations[user_key]
-                                logger.info(f"Removed {user_key} from active conversations (session ended)")
+                                logger.info(
+                                    f"Removed {user_key} from active conversations (session ended)"
+                                )
                 except Exception as e:
                     logger.error(f"Error processing message: {e}")
                     try:
@@ -335,7 +350,7 @@ class DiscordChannel(BaseChannel):
                     "author_name": message.author.display_name,
                     "message_id": str(message.id),
                     "session_key": session_key,
-                }
+                },
             )
 
     async def send(self, msg: OutboundMessage) -> None:
@@ -354,7 +369,8 @@ class DiscordChannel(BaseChannel):
 
             if channel and hasattr(channel, "send"):
                 formatted_content = format_discord_message(msg.content)
-                for chunk in split_message(formatted_content):
+                chunks = split_message(formatted_content)
+                for chunk in chunks:
                     await channel.send(chunk)
                 logger.debug(f"Sent message to channel {channel_id}")
             else:
@@ -362,7 +378,6 @@ class DiscordChannel(BaseChannel):
 
         except Exception as e:
             logger.error(f"Failed to send Discord message: {e}")
-
 
     @property
     def client(self) -> discord.Client:
@@ -377,10 +392,7 @@ class DiscordChannel(BaseChannel):
         """
         now = time.time()
         timeout = self.config.conversation_timeout_seconds
-        expired = [
-            key for key, ts in self._active_conversations.items()
-            if now - ts >= timeout
-        ]
+        expired = [key for key, ts in self._active_conversations.items() if now - ts >= timeout]
         for key in expired:
             del self._active_conversations[key]
             # Also clean up the lock if not currently held
@@ -392,3 +404,19 @@ class DiscordChannel(BaseChannel):
     def active_conversation_count(self) -> int:
         """Get number of active conversations."""
         return len(self._active_conversations)
+
+    def _is_admin_channel(self, channel_id: int) -> bool:
+        """Check if channel is an admin command channel."""
+        if not self.admin_handler:
+            return False
+        return channel_id in self.admin_handler.config.admin_channel_ids
+
+    async def _handle_admin_command(self, message: Message, content: str) -> None:
+        """Handle admin command from designated channel."""
+        if not self.admin_handler:
+            return
+
+        if not content.startswith(self.admin_handler.config.command_prefix):
+            return
+
+        await self.admin_handler.handle(message)

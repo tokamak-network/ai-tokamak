@@ -69,18 +69,24 @@ class NewsFetcher:
             except httpx.TimeoutException as e:
                 if attempt < MAX_RETRIES - 1:
                     delay = RETRY_BASE_DELAY * (2**attempt)
-                    logger.warning(f"Timeout fetching {url}, retry {attempt + 1}/{MAX_RETRIES} in {delay}s")
+                    logger.warning(
+                        f"Timeout fetching {url}, retry {attempt + 1}/{MAX_RETRIES} in {delay}s"
+                    )
                     await asyncio.sleep(delay)
                 else:
                     raise e
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 429 and attempt < MAX_RETRIES - 1:
                     delay = RETRY_BASE_DELAY * (2**attempt)
-                    logger.warning(f"Rate limited on {url}, retry {attempt + 1}/{MAX_RETRIES} in {delay}s")
+                    logger.warning(
+                        f"Rate limited on {url}, retry {attempt + 1}/{MAX_RETRIES} in {delay}s"
+                    )
                     await asyncio.sleep(delay)
                 elif 500 <= e.response.status_code < 600 and attempt < MAX_RETRIES - 1:
                     delay = RETRY_BASE_DELAY * (2**attempt)
-                    logger.warning(f"Server error {e.response.status_code} on {url}, retry {attempt + 1}/{MAX_RETRIES} in {delay}s")
+                    logger.warning(
+                        f"Server error {e.response.status_code} on {url}, retry {attempt + 1}/{MAX_RETRIES} in {delay}s"
+                    )
                     await asyncio.sleep(delay)
                 else:
                     raise e

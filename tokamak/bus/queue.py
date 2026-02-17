@@ -1,7 +1,7 @@
 """Async message queue for decoupled channel-agent communication."""
 
 import asyncio
-from typing import Callable, Awaitable
+from typing import Awaitable, Callable
 
 from loguru import logger
 
@@ -19,7 +19,9 @@ class MessageBus:
     def __init__(self):
         self.inbound: asyncio.Queue[InboundMessage] = asyncio.Queue()
         self.outbound: asyncio.Queue[OutboundMessage] = asyncio.Queue()
-        self._outbound_subscribers: dict[str, list[Callable[[OutboundMessage], Awaitable[None]]]] = {}
+        self._outbound_subscribers: dict[
+            str, list[Callable[[OutboundMessage], Awaitable[None]]]
+        ] = {}
         self._running = False
 
     async def publish_inbound(self, msg: InboundMessage) -> None:
@@ -39,9 +41,7 @@ class MessageBus:
         return await self.outbound.get()
 
     def subscribe_outbound(
-        self,
-        channel: str,
-        callback: Callable[[OutboundMessage], Awaitable[None]]
+        self, channel: str, callback: Callable[[OutboundMessage], Awaitable[None]]
     ) -> None:
         """Subscribe to outbound messages for a specific channel."""
         if channel not in self._outbound_subscribers:

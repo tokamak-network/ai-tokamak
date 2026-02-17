@@ -48,3 +48,4 @@ evaluation_past_questions.txt
 
 # Logs
 *.log
+evaluation_results/

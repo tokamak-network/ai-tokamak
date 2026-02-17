@@ -299,7 +299,14 @@ NOTE: Only the most relevant patterns for the current question are included belo
 # Answer patterns with keyword triggers for dynamic injection
 ANSWER_PATTERNS: list[dict] = [
     {
-        "keywords": ["토카막이 뭐", "토카막 네트워크가", "tokamak network", "뭔가요", "what is tokamak", "무엇인가"],
+        "keywords": [
+            "토카막이 뭐",
+            "토카막 네트워크가",
+            "tokamak network",
+            "뭔가요",
+            "what is tokamak",
+            "무엇인가",
+        ],
         "content": """### "토카막 네트워크가 뭔가요?" / "What is Tokamak Network?"
 **⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
@@ -420,7 +427,15 @@ GranTON은 토카막 네트워크 생태계 프로젝트를 지원하는 공식 
 ```""",
     },
     {
-        "keywords": ["통신", "interop", "cross", "메시지 프로토콜", "message protocol", "브리지", "bridge"],
+        "keywords": [
+            "통신",
+            "interop",
+            "cross",
+            "메시지 프로토콜",
+            "message protocol",
+            "브리지",
+            "bridge",
+        ],
         "content": """### "L2 체인 간 통신은 어떻게 작동하나요?"
 **⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```
@@ -454,7 +469,18 @@ TON은 직접 거래 불가. TON → WTON 변환 후 Uniswap 등에서 거래
 ```""",
     },
     {
-        "keywords": ["rollup hub", "trh", "출시", "launch", "메인넷", "mainnet", "빌드", "build", "sdk", "롤업"],
+        "keywords": [
+            "rollup hub",
+            "trh",
+            "출시",
+            "launch",
+            "메인넷",
+            "mainnet",
+            "빌드",
+            "build",
+            "sdk",
+            "롤업",
+        ],
         "content": """### "Tokamak Rollup Hub는 언제 출시되나요?" / "How do I build on Tokamak?"
 **⚠️ COPY THIS ANSWER EXACTLY** (Korean):
 ```

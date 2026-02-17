@@ -48,19 +48,19 @@ class AgentLoop:
 
     async def _review_korean_quality(self, content: str) -> str:
         """Review and correct Korean language quality issues.
-        
+
         Args:
             content: Original response text
-            
+
         Returns:
             Reviewed and corrected text, or original if review fails
         """
         if not self.enable_korean_review:
             return content
-        
+
         if not content or len(content) < 10:
             return content
-        
+
         review_prompt = """Korean quality check. Fix ONLY these issues, return corrected text only:
 
 1. Brand names: "토카막 네트워크" (NOT "토카막" alone). No typos: "토라막", "토큰막" 등
@@ -73,43 +73,41 @@ class AgentLoop:
 
 Original message:
 """
-        
+
         try:
-            messages = [
-                {"role": "user", "content": review_prompt + content}
-            ]
-            
+            messages = [{"role": "user", "content": review_prompt + content}]
+
             review_model = self.korean_review_model or self.model
-            
+
             response = await self.provider.chat(
                 messages=messages,
                 model=review_model,
                 max_tokens=self.max_tokens,
                 temperature=0.3,  # Lower temperature for consistent corrections
             )
-            
+
             if response.finish_reason == "error" or not response.content:
                 logger.warning("Korean review failed, using original")
                 return content
-            
+
             reviewed = response.content.strip()
-            
+
             # Sanity check: reviewed text should be similar length
             if len(reviewed) < len(content) * 0.5 or len(reviewed) > len(content) * 2:
                 logger.warning("Korean review produced suspicious output, using original")
                 return content
-            
+
             # Check for URL changes (additions, modifications, or deletions)
-            original_urls = set(re.findall(r'https?://[^\s<>]+', content))
-            reviewed_urls = set(re.findall(r'https?://[^\s<>]+', reviewed))
+            original_urls = set(re.findall(r"https?://[^\s<>]+", content))
+            reviewed_urls = set(re.findall(r"https?://[^\s<>]+", reviewed))
 
             if reviewed_urls != original_urls:
-                logger.warning(f"Korean review altered URLs, using original")
+                logger.warning("Korean review altered URLs, using original")
                 return content
-            
+
             logger.debug(f"Korean review applied: {len(content)} -> {len(reviewed)} chars")
             return reviewed
-            
+
         except Exception as e:
             logger.error(f"Korean review failed: {e}")
             return content
@@ -122,9 +120,9 @@ Original message:
         Returns True if Korean detected, False otherwise.
         """
         for char in text:
-            if '\uAC00' <= char <= '\uD7AF':  # Hangul syllables (가-힣)
+            if "\uac00" <= char <= "\ud7af":  # Hangul syllables (가-힣)
                 return True
-            if '\u3131' <= char <= '\u318E':  # Hangul Jamo (ㄱ-ㅎ, ㅏ-ㅣ)
+            if "\u3131" <= char <= "\u318e":  # Hangul Jamo (ㄱ-ㅎ, ㅏ-ㅣ)
                 return True
         return False
 
@@ -203,10 +201,7 @@ Original message:
                         {
                             "id": tc.id,
                             "type": "function",
-                            "function": {
-                                "name": tc.name,
-                                "arguments": json.dumps(tc.arguments)
-                            }
+                            "function": {"name": tc.name, "arguments": json.dumps(tc.arguments)},
                         }
                         for tc in response.tool_calls
                     ]
@@ -217,14 +212,12 @@ Original message:
                     for tc in response.tool_calls:
                         logger.info(f"Tool call: {tc.name}({tc.arguments})")
                         result = await self.tools.execute(tc.name, tc.arguments)
-                        logger.info(f"Tool result: {tc.name} -> {result[:200]}{'...' if len(result) > 200 else ''}")
+                        logger.info(
+                            f"Tool result: {tc.name} -> {result[:200]}{'...' if len(result) > 200 else ''}"
+                        )
                         if '"error"' in result[:50]:
                             has_error = True
-                        messages.append({
-                            "role": "tool",
-                            "tool_call_id": tc.id,
-                            "content": result
-                        })
+                        messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
 
                     if has_error:
                         consecutive_tool_errors += 1
@@ -248,7 +241,11 @@ Original message:
                         session.end()
                         # Return only the message before the marker
                         content = content.split(self.END_MARKER)[0].strip()
-                        return content if content else "대화를 종료합니다. 다시 대화하고 싶으시면 언제든지 말씀해주세요!\nConversation ended. Feel free to mention me anytime to start a new one!"
+                        return (
+                            content
+                            if content
+                            else "대화를 종료합니다. 다시 대화하고 싶으시면 언제든지 말씀해주세요!\nConversation ended. Feel free to mention me anytime to start a new one!"
+                        )
 
                     # Apply Korean quality review if output contains Korean
                     if self._detect_korean(content):

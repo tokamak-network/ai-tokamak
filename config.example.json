@@ -28,5 +28,9 @@
     "english_channel_id": null,
     "max_news_per_fetch": 15,
     "summary_model": null
+  },
+  "admin": {
+    "admin_channel_ids": [987654321],
+    "command_prefix": "!"
   }
 }

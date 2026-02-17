@@ -140,7 +140,9 @@ class NewsFeedService:
     def _format_links(self, items: list[NewsItem], max_links: int = 10) -> str:
         links = []
         for item in items[:max_links]:
-            links.append(f"• [{item.title[:50]}{'...' if len(item.title) > 50 else ''}]({item.url})")
+            links.append(
+                f"• [{item.title[:50]}{'...' if len(item.title) > 50 else ''}]({item.url})"
+            )
         return "\n".join(links)
 
     def _trim_processed_ids(self) -> None:

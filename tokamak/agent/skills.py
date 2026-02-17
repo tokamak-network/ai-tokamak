@@ -38,11 +38,13 @@ class SkillsLoader:
                 skill_file = skill_dir / "SKILL.md"
                 if skill_file.exists():
                     meta = self._parse_frontmatter(skill_file)
-                    skills.append({
-                        "name": meta.get("name", skill_dir.name),
-                        "description": meta.get("description", skill_dir.name),
-                        "path": str(skill_file),
-                    })
+                    skills.append(
+                        {
+                            "name": meta.get("name", skill_dir.name),
+                            "description": meta.get("description", skill_dir.name),
+                            "path": str(skill_file),
+                        }
+                    )
 
         return skills
 
@@ -103,6 +105,6 @@ class SkillsLoader:
         for line in match.group(1).split("\n"):
             if ":" in line:
                 key, value = line.split(":", 1)
-                metadata[key.strip()] = value.strip().strip('"\'')
+                metadata[key.strip()] = value.strip().strip("\"'")
 
         return metadata

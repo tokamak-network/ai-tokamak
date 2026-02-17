@@ -5,6 +5,7 @@ from pathlib import Path
 
 from loguru import logger
 
+from tokamak.admin import AdminHandler
 from tokamak.agent import AgentLoop
 from tokamak.agent.skills import SkillsLoader
 from tokamak.agent.tools import ToolRegistry, WebFetchTool
@@ -57,12 +58,18 @@ class TokamakApp:
             korean_review_model=config.agent.korean_review_model,
         )
 
+        # Initialize admin handler (before DiscordChannel)
+        self.admin_handler: AdminHandler | None = None
+        if config.admin.admin_channel_ids:
+            self.admin_handler = AdminHandler(config.admin, self)
+
         # Initialize Discord channel
         self.discord = DiscordChannel(
             config=config.discord,
             bus=self.bus,
             session_manager=self.session_manager,
             on_message_callback=self._handle_message,
+            admin_handler=self.admin_handler,
         )
 
         self._running = False

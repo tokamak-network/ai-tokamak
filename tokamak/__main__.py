@@ -36,6 +36,7 @@ def run(
 ):
     """Run the bot."""
     from pathlib import Path
+
     from tokamak.app import TokamakApp
     from tokamak.config import load_config_or_exit
 
@@ -68,11 +69,14 @@ def run(
 @app.command("test-discord")
 def test_discord(
     config_path: str = typer.Option("config.json", "--config", "-c", help="Config file path"),
-    message: str = typer.Option("🤖 Tokamak 봇 테스트 메시지입니다!", "--message", "-m", help="Test message to send"),
+    message: str = typer.Option(
+        "🤖 Tokamak 봇 테스트 메시지입니다!", "--message", "-m", help="Test message to send"
+    ),
 ):
     """Test Discord connection by sending a test message."""
     import discord
     from discord import Intents
+
     from tokamak.config import load_config_or_exit
 
     config = load_config_or_exit(config_path)
@@ -86,7 +90,11 @@ def test_discord(
             logger.info(f"Logged in as {client.user}")
 
             # Get first monitored channel
-            channel_id = config.discord.monitor_channel_ids[0] if config.discord.monitor_channel_ids else None
+            channel_id = (
+                config.discord.monitor_channel_ids[0]
+                if config.discord.monitor_channel_ids
+                else None
+            )
             if not channel_id:
                 logger.error("No monitor channels configured")
                 await client.close()
@@ -129,35 +137,36 @@ def generate_response(
 ):
     """Generate a response with Korean review applied."""
     from pathlib import Path
+
     from tokamak.app import TokamakApp
     from tokamak.config import load_config_or_exit
     from tokamak.session import Session
 
     config = load_config_or_exit(config_path)
-    
+
     async def _generate():
         # Initialize app components
         bot = TokamakApp(config=config, data_dir=Path(data_dir))
-        
+
         # Create temporary session
         session = Session(key="cli:cli")
-        
+
         # Generate response
         logger.info(f"Question: {question}")
         logger.info("Generating response...")
-        
+
         response = await bot.agent.run(session, question)
-        
+
         if not response:
             logger.error("Failed to generate response")
             return
-        
+
         # Display response
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print(response)
-        print("="*60)
+        print("=" * 60)
         print(f"\nCharacter count: {len(response)}/2000")
-    
+
     asyncio.run(_generate())
 
 
@@ -169,6 +178,7 @@ def show_system_prompt(
 ):
     """Display the system prompt used by the agent."""
     from pathlib import Path
+
     from tokamak.app import TokamakApp
     from tokamak.config import load_config_or_exit
 
@@ -179,6 +189,7 @@ def show_system_prompt(
 
     if all_patterns:
         from tokamak.agent.prompts import build_system_prompt as _build
+
         skills_summary = None
         if bot.agent.skills_loader:
             skills_summary = bot.agent.skills_loader.build_skills_summary()

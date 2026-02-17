@@ -93,11 +93,13 @@ class OpenAICompatibleProvider(LLMProvider):
                     except json.JSONDecodeError:
                         args = {"raw": args}
 
-                tool_calls.append(ToolCallRequest(
-                    id=tc.id,
-                    name=tc.function.name,
-                    arguments=args,
-                ))
+                tool_calls.append(
+                    ToolCallRequest(
+                        id=tc.id,
+                        name=tc.function.name,
+                        arguments=args,
+                    )
+                )
 
         # 2. Text-based tool calls (for models that don't support native function calling)
         if not tool_calls and content:
@@ -135,7 +137,7 @@ class OpenAICompatibleProvider(LLMProvider):
         cleaned_content = content
 
         # Pattern: <tool_call>...</tool_call>
-        pattern = r'<tool_call>\s*(\{.*?\})\s*</tool_call>'
+        pattern = r"<tool_call>\s*(\{.*?\})\s*</tool_call>"
         matches = re.findall(pattern, content, re.DOTALL)
 
         for match in matches:
@@ -145,17 +147,19 @@ class OpenAICompatibleProvider(LLMProvider):
                 arguments = data.get("arguments", {})
 
                 if name:
-                    tool_calls.append(ToolCallRequest(
-                        id=f"call_{uuid.uuid4().hex[:8]}",
-                        name=name,
-                        arguments=arguments,
-                    ))
+                    tool_calls.append(
+                        ToolCallRequest(
+                            id=f"call_{uuid.uuid4().hex[:8]}",
+                            name=name,
+                            arguments=arguments,
+                        )
+                    )
             except json.JSONDecodeError:
                 continue
 
         # Remove tool call tags from content
         if tool_calls:
-            cleaned_content = re.sub(pattern, '', content, flags=re.DOTALL)
+            cleaned_content = re.sub(pattern, "", content, flags=re.DOTALL)
 
         return tool_calls, cleaned_content
 

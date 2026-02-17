@@ -69,6 +69,22 @@ def main():
     news_sources_str = os.environ.get("NEWS_SOURCES", "")
     news_max_per_fetch = int(os.environ.get("NEWS_MAX_PER_FETCH", "15"))
 
+    # Admin settings
+    admin_channel_ids_str = os.environ.get("ADMIN_CHANNEL_IDS", "")
+    admin_command_prefix = os.environ.get("ADMIN_COMMAND_PREFIX", "!")
+
+    admin_channel_ids = []
+    if admin_channel_ids_str:
+        try:
+            admin_channel_ids = [
+                int(x.strip())
+                for x in admin_channel_ids_str.split(",")
+                if x.strip()
+            ]
+        except ValueError as e:
+            print(f"❌ Error parsing ADMIN_CHANNEL_IDS: {e}", file=sys.stderr)
+            sys.exit(1)
+
     news_sources = []
     if news_sources_str:
         news_sources = [s.strip() for s in news_sources_str.split(",") if s.strip()]
@@ -105,6 +121,10 @@ def main():
             "english_channel_id": int(news_english_channel) if news_english_channel else None,
             "max_news_per_fetch": news_max_per_fetch,
             "summary_model": None
+        },
+        "admin": {
+            "admin_channel_ids": admin_channel_ids,
+            "command_prefix": admin_command_prefix
         }
     }
 

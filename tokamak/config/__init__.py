@@ -1,13 +1,13 @@
 """Configuration module."""
 
+from tokamak.config.loader import load_config, load_config_or_exit
 from tokamak.config.schema import (
+    AgentConfig,
     Config,
     DiscordConfig,
-    SessionConfig,
     ProvidersConfig,
-    AgentConfig,
+    SessionConfig,
 )
-from tokamak.config.loader import load_config, load_config_or_exit
 
 __all__ = [
     "Config",

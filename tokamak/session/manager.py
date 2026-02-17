@@ -23,18 +23,13 @@ class Session:
 
     def add_message(self, role: str, content: str, **kwargs: Any) -> None:
         """Add a message to the session."""
-        msg = {
-            "role": role,
-            "content": content,
-            "timestamp": datetime.now().isoformat(),
-            **kwargs
-        }
+        msg = {"role": role, "content": content, "timestamp": datetime.now().isoformat(), **kwargs}
         self.messages.append(msg)
         self.updated_at = datetime.now()
 
         # Trim old messages if exceeding max
         if len(self.messages) > self.max_messages:
-            self.messages = self.messages[-self.max_messages:]
+            self.messages = self.messages[-self.max_messages :]
 
     def get_history(self, max_messages: int = 50) -> list[dict[str, Any]]:
         """
@@ -47,7 +42,9 @@ class Session:
             List of messages in LLM format.
         """
         # Get recent messages
-        recent = self.messages[-max_messages:] if len(self.messages) > max_messages else self.messages
+        recent = (
+            self.messages[-max_messages:] if len(self.messages) > max_messages else self.messages
+        )
 
         # Convert to LLM format (just role and content)
         return [{"role": m["role"], "content": m["content"]} for m in recent]
@@ -133,11 +130,7 @@ class SessionManager:
                 "updated_at": s.updated_at.isoformat(),
                 "message_count": len(s.messages),
             }
-            for s in sorted(
-                self._sessions.values(),
-                key=lambda x: x.updated_at,
-                reverse=True
-            )
+            for s in sorted(self._sessions.values(), key=lambda x: x.updated_at, reverse=True)
         ]
 
     def cleanup_stale(self, max_age_seconds: int = 3600) -> int:
@@ -147,10 +140,7 @@ class SessionManager:
             Number of sessions removed.
         """
         cutoff = datetime.now() - timedelta(seconds=max_age_seconds)
-        stale_keys = [
-            key for key, session in self._sessions.items()
-            if session.updated_at < cutoff
-        ]
+        stale_keys = [key for key, session in self._sessions.items() if session.updated_at < cutoff]
         for key in stale_keys:
             del self._sessions[key]
         return len(stale_keys)
