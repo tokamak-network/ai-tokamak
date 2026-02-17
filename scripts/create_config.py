@@ -62,6 +62,17 @@ def main():
     conversation_timeout = int(os.environ.get("CONVERSATION_TIMEOUT_SECONDS", "300"))
     max_messages = int(os.environ.get("MAX_MESSAGES", "100"))
 
+    news_feed_enabled = os.environ.get("NEWS_FEED_ENABLED", "false").lower() == "true"
+    news_feed_interval = int(os.environ.get("NEWS_FEED_INTERVAL_SECONDS", "300"))
+    news_korean_channel = os.environ.get("NEWS_KOREAN_CHANNEL_ID", "")
+    news_english_channel = os.environ.get("NEWS_ENGLISH_CHANNEL_ID", "")
+    news_sources_str = os.environ.get("NEWS_SOURCES", "")
+    news_max_per_fetch = int(os.environ.get("NEWS_MAX_PER_FETCH", "15"))
+
+    news_sources = []
+    if news_sources_str:
+        news_sources = [s.strip() for s in news_sources_str.split(",") if s.strip()]
+
     # Build config
     config = {
         "discord": {
@@ -83,6 +94,17 @@ def main():
             "model": agent_model,
             "enable_korean_review": True,
             "korean_review_model": None
+        },
+        "news_feed": {
+            "enabled": news_feed_enabled,
+            "interval_seconds": news_feed_interval,
+            "news_sources": news_sources if news_sources else [
+                "https://www.coindesk.com/arc/outboundfeeds/rss/"
+            ],
+            "korean_channel_id": int(news_korean_channel) if news_korean_channel else None,
+            "english_channel_id": int(news_english_channel) if news_english_channel else None,
+            "max_news_per_fetch": news_max_per_fetch,
+            "summary_model": None
         }
     }
 
@@ -95,6 +117,12 @@ def main():
     print(f"  - Monitor channels: {monitor_channel_ids}")
     print(f"  - Allow guilds: {allow_guilds or 'all'}")
     print(f"  - Agent model: {agent_model}")
+    if news_feed_enabled:
+        print(f"  - News feed: enabled (interval: {news_feed_interval}s)")
+        if news_korean_channel:
+            print(f"    - Korean channel: {news_korean_channel}")
+        if news_english_channel:
+            print(f"    - English channel: {news_english_channel}")
 
 
 

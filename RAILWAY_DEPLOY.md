@@ -41,6 +41,19 @@
 | `MAX_MESSAGES` | 세션당 저장할 최대 메시지 수 | `100` |
 | `LOG_LEVEL` | 로그 레벨 (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | `INFO` |
 
+### 뉴스 피드 (선택)
+
+| 변수 | 설명 | 기본값 |
+|---|---|---|
+| `NEWS_FEED_ENABLED` | 뉴스 피드 기능 활성화 | `false` |
+| `NEWS_FEED_INTERVAL_SECONDS` | 뉴스 수집 주기 (초) | `300` (5분) |
+| `NEWS_KOREAN_CHANNEL_ID` | 한국어 요약 전송할 디스코드 채널 ID | _(없음)_ |
+| `NEWS_ENGLISH_CHANNEL_ID` | 영어 요약 전송할 디스코드 채널 ID | _(없음)_ |
+| `NEWS_SOURCES` | RSS 피드 URL (쉼표 구분) | CoinDesk RSS |
+| `NEWS_MAX_PER_FETCH` | 한 번에 처리할 최대 뉴스 수 | `15` |
+
+> 뉴스 피드를 활성화하려면 `NEWS_FEED_ENABLED=true`로 설정하고, 최소 하나의 채널 ID를 지정해야 합니다.
+
 ## 동작 방식
 
 ```
