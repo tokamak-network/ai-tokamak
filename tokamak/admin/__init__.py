@@ -1,25 +1,11 @@
 """Admin commands for Discord bot."""
 
-from tokamak.admin.commands import (
-    BroadcastCommand,
-    ClearCommand,
-    HelpCommand,
-    SessionsCommand,
-    StatusCommand,
-    TimeoutCommand,
-    UntimeoutCommand,
-)
-from tokamak.admin.handler import AdminCommand, AdminContext, AdminHandler
+from tokamak.admin.handler import AdminHandler
+from tokamak.admin.registry import AdminToolRegistry
+from tokamak.admin.tools import ADMIN_TOOLS
 
 __all__ = [
-    "AdminCommand",
-    "AdminContext",
     "AdminHandler",
-    "StatusCommand",
-    "SessionsCommand",
-    "ClearCommand",
-    "BroadcastCommand",
-    "TimeoutCommand",
-    "UntimeoutCommand",
-    "HelpCommand",
+    "AdminToolRegistry",
+    "ADMIN_TOOLS",
 ]

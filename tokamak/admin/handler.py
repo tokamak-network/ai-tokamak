@@ -1,120 +1,146 @@
-"""Admin command handler."""
+"""Admin handler with LLM-based tool calling."""
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+import json
+from collections import deque
 from typing import TYPE_CHECKING
 
 from discord import Message
 from loguru import logger
 
+from tokamak.admin.prompt import ADMIN_SYSTEM_PROMPT
+from tokamak.admin.registry import AdminToolRegistry
 from tokamak.config.schema import AdminConfig
 
 if TYPE_CHECKING:
     from tokamak.app import TokamakApp
 
 
-@dataclass
-class AdminContext:
-    """Context passed to admin commands."""
-
-    message: Message
-    app: "TokamakApp"
-    args: list[str]
-
-
-class AdminCommand(ABC):
-    """Base class for admin commands."""
-
-    name: str = ""
-    description: str = ""
-    usage: str = ""
-
-    @abstractmethod
-    async def execute(self, ctx: AdminContext) -> str:
-        """Execute the command and return response."""
-        ...
-
-
 class AdminHandler:
-    """Handles admin commands from DMs."""
+    """Handles admin messages with LLM-based tool calling."""
 
     def __init__(self, config: AdminConfig, app: "TokamakApp"):
         self.config = config
         self.app = app
-        self._commands: dict[str, AdminCommand] = {}
-        self._register_default_commands()
+        self._channel_histories: dict[int, deque[dict]] = {}
+        self._max_history = 100
 
-    def _register_default_commands(self) -> None:
-        from tokamak.admin.commands import (
-            BroadcastCommand,
-            ClearCommand,
-            HelpCommand,
-            SessionsCommand,
-            StatusCommand,
-            TimeoutCommand,
-            UntimeoutCommand,
-        )
+    def _get_history(self, channel_id: int) -> deque[dict]:
+        if channel_id not in self._channel_histories:
+            self._channel_histories[channel_id] = deque(maxlen=self._max_history)
+        return self._channel_histories[channel_id]
 
-        self.register(StatusCommand())
-        self.register(SessionsCommand())
-        self.register(ClearCommand())
-        self.register(BroadcastCommand())
-        self.register(TimeoutCommand())
-        self.register(UntimeoutCommand())
-        self.register(HelpCommand())
-
-    def register(self, command: AdminCommand) -> None:
-        """Register a command."""
-        self._commands[command.name] = command
-        logger.debug(f"Registered admin command: {command.name}")
+    def _add_to_history(self, channel_id: int, message: dict) -> None:
+        history = self._get_history(channel_id)
+        history.append(message)
 
     async def handle(self, message: Message) -> None:
-        """Handle an admin DM message."""
         content = message.content.strip()
-        prefix = self.config.command_prefix
 
-        if not content.startswith(prefix):
-            await message.reply(
-                f"명령어는 `{prefix}`로 시작해야 합니다.\n"
-                f"`{prefix}help`로 사용 가능한 명령어를 확인하세요."
-            )
+        if not content:
             return
 
-        parts = content[len(prefix) :].split()
-        if not parts:
-            await message.reply("명령어를 입력해주세요.")
+        guild = message.guild
+        if not guild:
+            await message.reply("이 명령어는 서버 채널에서만 사용할 수 있습니다.")
             return
 
-        cmd_name = parts[0].lower()
-        args = parts[1:]
-
-        if cmd_name not in self._commands:
-            await message.reply(f"알 수 없는 명령어: `{cmd_name}`\n`{prefix}help`를 참고하세요.")
-            return
-
-        command = self._commands[cmd_name]
-        ctx = AdminContext(message=message, app=self.app, args=args)
-
+        channel_id = message.channel.id
         logger.info(
-            f"Admin command executed: {cmd_name} "
-            f"by user {message.author.id} ({message.author.display_name})"
+            f"Admin message from {message.author.display_name}: {content[:50]}..."
         )
 
-        try:
-            response = await command.execute(ctx)
-            if response:
-                await message.reply(response)
-        except Exception as e:
-            logger.error(f"Error executing admin command {cmd_name}: {e}")
-            await message.reply(f"명령 실행 중 오류 발생: {e}")
+        self._add_to_history(channel_id, {
+            "role": "user",
+            "content": content,
+            "author": message.author.display_name,
+        })
 
-    def get_commands_info(self) -> list[dict[str, str]]:
-        """Get list of all registered commands with their info."""
-        return [
-            {
-                "name": cmd.name,
-                "description": cmd.description,
-                "usage": cmd.usage,
-            }
-            for cmd in self._commands.values()
+        try:
+            response = await self._run_agent(channel_id, content, guild)
+
+            if response:
+                self._add_to_history(channel_id, {
+                    "role": "assistant",
+                    "content": response,
+                })
+                await message.reply(response)
+            else:
+                await message.reply("요청을 처리하는 중 문제가 발생했습니다.")
+
+        except Exception as e:
+            logger.error(f"Admin handler error: {e}")
+            await message.reply(f"처리 중 오류 발생: {e}")
+
+    async def _run_agent(
+        self, channel_id: int, message: str, guild
+    ) -> str | None:
+        tools = AdminToolRegistry(self.app, guild)
+        tool_definitions = tools.get_definitions()
+
+        history = list(self._get_history(channel_id))
+        history_messages = [
+            {"role": msg["role"], "content": msg["content"]}
+            for msg in history
         ]
+
+        messages = [
+            {"role": "system", "content": ADMIN_SYSTEM_PROMPT},
+            *history_messages,
+        ]
+
+        max_iterations = 5
+        for _ in range(max_iterations):
+            response = await self.app.provider.chat(
+                messages=messages,
+                tools=tool_definitions,
+                model=self.app.config.agent.model,
+                max_tokens=1024,
+                temperature=0.3,
+            )
+
+            if response.finish_reason == "error":
+                logger.error(f"LLM error: {response.content}")
+                return "AI 응답 생성 중 오류가 발생했습니다."
+
+            if response.has_tool_calls:
+                assistant_msg = {"role": "assistant", "content": response.content}
+                assistant_msg["tool_calls"] = [
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {
+                            "name": tc.name,
+                            "arguments": json.dumps(tc.arguments),
+                        },
+                    }
+                    for tc in response.tool_calls
+                ]
+                messages.append(assistant_msg)
+                self._add_to_history(channel_id, {
+                    "role": "assistant",
+                    "content": response.content or "",
+                    "tool_calls": assistant_msg["tool_calls"],
+                })
+
+                for tc in response.tool_calls:
+                    logger.info(f"Admin tool call: {tc.name}({tc.arguments})")
+                    result = await tools.execute(tc.name, tc.arguments)
+                    logger.info(f"Admin tool result: {result[:200]}")
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "tool_call_id": tc.id,
+                            "content": result,
+                        }
+                    )
+                    self._add_to_history(channel_id, {
+                        "role": "tool",
+                        "tool_call_id": tc.id,
+                        "content": result,
+                    })
+
+                continue
+
+            return response.content.strip() if response.content else None
+
+        return "처리 시간이 초과되었습니다. 다시 시도해주세요."
