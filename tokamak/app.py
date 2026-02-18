@@ -7,8 +7,7 @@ from loguru import logger
 
 from tokamak.admin import AdminHandler
 from tokamak.agent import AgentLoop
-from tokamak.agent.skills import SkillsLoader
-from tokamak.agent.tools import ToolRegistry, WebFetchTool
+from tokamak.agent.tools import InternalStateTool, ToolRegistry, WebFetchTool
 from tokamak.bus import MessageBus
 from tokamak.channels import DiscordChannel
 from tokamak.config import Config
@@ -23,34 +22,19 @@ class TokamakApp:
     """Main application orchestrating all components."""
 
     def __init__(self, config: Config, data_dir: Path = Path("data")):
-        """
-        Initialize the application.
-
-        Args:
-            config: Application configuration
-            data_dir: Directory for runtime data
-        """
         self.config = config
         self.data_dir = data_dir
 
-        # Initialize components
         self.bus = MessageBus()
         self.session_manager = SessionManager(max_messages=config.session.max_messages)
 
-        # Initialize LLM provider
         self.provider = self._create_provider()
 
-        # Initialize tools
         self.tools = self._create_tools()
 
-        # Initialize skills loader
-        self.skills_loader = SkillsLoader(workspace=data_dir)
-
-        # Initialize agent loop
         self.agent = AgentLoop(
             provider=self.provider,
             tools=self.tools,
-            skills_loader=self.skills_loader,
             model=config.agent.model,
             max_tokens=config.agent.max_tokens,
             temperature=config.agent.temperature,
@@ -58,12 +42,10 @@ class TokamakApp:
             korean_review_model=config.agent.korean_review_model,
         )
 
-        # Initialize admin handler (before DiscordChannel)
         self.admin_handler: AdminHandler | None = None
         if config.admin.admin_channel_ids:
             self.admin_handler = AdminHandler(config.admin, self)
 
-        # Initialize Discord channel
         self.discord = DiscordChannel(
             config=config.discord,
             bus=self.bus,
@@ -105,9 +87,15 @@ class TokamakApp:
         )
 
     def _create_tools(self) -> ToolRegistry:
-        """Create and register tools."""
         registry = ToolRegistry()
-        registry.register(WebFetchTool())
+
+        auth_tokens = {}
+        if self.config.discord.token:
+            auth_tokens["discord"] = self.config.discord.token
+
+        registry.register(WebFetchTool(auth_tokens=auth_tokens))
+        registry.register(InternalStateTool())
+
         return registry
 
     def _create_news_feed(self) -> NewsFeedService:

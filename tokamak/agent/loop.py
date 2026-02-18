@@ -6,7 +6,6 @@ import re
 from loguru import logger
 
 from tokamak.agent.prompts import build_system_prompt
-from tokamak.agent.skills import SkillsLoader
 from tokamak.agent.tools import ToolRegistry
 from tokamak.providers import LLMProvider
 from tokamak.session import Session
@@ -19,7 +18,6 @@ class AgentLoop:
         self,
         provider: LLMProvider,
         tools: ToolRegistry | None = None,
-        skills_loader: SkillsLoader | None = None,
         model: str | None = None,
         system_prompt: str | None = None,
         max_history_messages: int = 20,
@@ -31,7 +29,6 @@ class AgentLoop:
     ):
         self.provider = provider
         self.tools = tools
-        self.skills_loader = skills_loader
         self.model = model
         self._custom_system_prompt = system_prompt
         self.max_history_messages = max_history_messages
@@ -137,11 +134,7 @@ Original message:
         if self._custom_system_prompt:
             return self._custom_system_prompt
 
-        skills_summary = None
-        if self.skills_loader:
-            skills_summary = self.skills_loader.build_skills_summary()
-
-        return build_system_prompt(skills_summary, user_message=user_message)
+        return build_system_prompt(skills_summary=None, user_message=user_message)
 
     def _build_messages(self, session: Session, current_message: str) -> list[dict]:
         """Build messages list for LLM call."""

@@ -93,6 +93,10 @@ class OpenAICompatibleProvider(LLMProvider):
                     except json.JSONDecodeError:
                         args = {"raw": args}
 
+                # Ensure args is always a dict
+                if not isinstance(args, dict):
+                    args = {"value": args}
+
                 tool_calls.append(
                     ToolCallRequest(
                         id=tc.id,
@@ -147,6 +151,8 @@ class OpenAICompatibleProvider(LLMProvider):
                 arguments = data.get("arguments", {})
 
                 if name:
+                    if not isinstance(arguments, dict):
+                        arguments = {"value": arguments}
                     tool_calls.append(
                         ToolCallRequest(
                             id=f"call_{uuid.uuid4().hex[:8]}",
