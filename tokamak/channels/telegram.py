@@ -1,0 +1,238 @@
+"""Telegram channel implementation with inline buttons for admin actions."""
+
+import hashlib
+from typing import TYPE_CHECKING, Awaitable, Callable
+
+from loguru import logger
+
+try:
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+    from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+
+    TELEGRAM_AVAILABLE = True
+except ImportError:
+    TELEGRAM_AVAILABLE = False
+    Application = None
+    ContextTypes = None
+    InlineKeyboardButton = None
+    InlineKeyboardMarkup = None
+    Update = None
+
+from tokamak.bus.events import OutboundMessage
+from tokamak.bus.queue import MessageBus
+from tokamak.channels.base import BaseChannel
+from tokamak.config.schema import TelegramConfig
+
+if TYPE_CHECKING:
+    from tokamak.moderation.types import ToxicContentEvent
+
+
+class TelegramChannel(BaseChannel):
+    """Telegram channel for admin notifications with inline buttons."""
+
+    name = "telegram"
+
+    def __init__(
+        self,
+        config: TelegramConfig,
+        bus: MessageBus,
+        on_ban_callback: Callable[["ToxicContentEvent"], Awaitable[None]] | None = None,
+        on_dismiss_callback: Callable[["ToxicContentEvent"], Awaitable[None]] | None = None,
+    ):
+        """
+        Initialize Telegram channel.
+
+        Args:
+            config: Telegram configuration
+            bus: Message bus for communication
+            on_ban_callback: Async callback(event: ToxicContentEvent) for ban action
+            on_dismiss_callback: Async callback(event: ToxicContentEvent) for dismiss action
+        """
+        if not TELEGRAM_AVAILABLE:
+            raise RuntimeError(
+                "python-telegram-bot not installed. Run: pip install python-telegram-bot"
+            )
+
+        super().__init__(config, bus)
+        self.config: TelegramConfig = config
+        self.on_ban_callback = on_ban_callback
+        self.on_dismiss_callback = on_dismiss_callback
+
+        self._app: Application | None = None
+        self._pending_events: dict[str, "ToxicContentEvent"] = {}  # callback_id -> event
+
+    async def start(self) -> None:
+        """Start the Telegram bot with webhook."""
+        if not self.config.enabled:
+            logger.info("Telegram notifications disabled")
+            return
+
+        logger.info("Starting Telegram channel...")
+
+        self._app = Application.builder().token(self.config.bot_token).build()
+
+        # Register handlers
+        self._app.add_handler(CommandHandler("start", self._handle_start))
+        self._app.add_handler(CallbackQueryHandler(self._handle_callback))
+
+        # Start webhook or polling
+        if self.config.webhook_url:
+            await self._app.bot.set_webhook(
+                url=self.config.webhook_url,
+                port=self.config.webhook_port,
+            )
+            await self._app.start()
+            logger.info(f"Telegram webhook set: {self.config.webhook_url}")
+        else:
+            # Fallback to polling for development
+            await self._app.initialize()
+            await self._app.start()
+            if self._app.updater:
+                await self._app.updater.start_polling()
+            logger.info("Telegram bot started in polling mode")
+
+    async def stop(self) -> None:
+        """Stop the Telegram bot."""
+        if self._app:
+            if self._app.updater and self._app.updater.running:
+                await self._app.updater.stop()
+            await self._app.stop()
+            await self._app.shutdown()
+        logger.info("Telegram channel stopped")
+
+    async def _handle_start(self, update: "Update", context: "ContextTypes.DEFAULT_TYPE") -> None:
+        """Handle /start command."""
+        if update.effective_chat and update.message:
+            await update.message.reply_text(
+                "🤖 Tokamak 관리자 봇\n\n"
+                "이 봇은 유해 콘텐츠 감지 알림을 받습니다.\n"
+                "Discord에서 문제가 감지되면 여기로 알림이 전송됩니다."
+            )
+
+    async def _handle_callback(
+        self, update: "Update", context: "ContextTypes.DEFAULT_TYPE"
+    ) -> None:
+        """Handle inline button callbacks."""
+        query = update.callback_query
+        if not query:
+            return
+
+        await query.answer()
+
+        callback_data = query.data
+        if not callback_data:
+            return
+
+        # Parse callback: "ban:123456" or "dismiss:123456"
+        parts = callback_data.split(":", 1)
+        if len(parts) != 2:
+            return
+
+        action, event_id = parts
+        event = self._pending_events.pop(event_id, None)
+
+        if not event:
+            await query.edit_message_text("⚠️ 이미 처리된 요청입니다.")
+            return
+
+        if action == "ban":
+            await query.edit_message_text(
+                f"✅ 사용자 차단 처리 중...\n" f"사용자: {event.user_name} ({event.user_id})"
+            )
+            if self.on_ban_callback:
+                try:
+                    await self.on_ban_callback(event)
+                    await query.edit_message_text(
+                        f"✅ 차단 완료\n" f"사용자: {event.user_name} ({event.user_id})"
+                    )
+                except Exception as e:
+                    logger.error(f"Ban callback error: {e}")
+                    await query.edit_message_text(f"❌ 차단 실패: {e}")
+
+        elif action == "dismiss":
+            await query.edit_message_text(
+                f"📋 요청이 무시되었습니다.\n" f"사용자: {event.user_name} ({event.user_id})"
+            )
+            if self.on_dismiss_callback:
+                try:
+                    await self.on_dismiss_callback(event)
+                except Exception as e:
+                    logger.error(f"Dismiss callback error: {e}")
+
+    def _generate_event_id(self, event: "ToxicContentEvent") -> str:
+        """Generate unique ID for callback tracking."""
+        data = f"{event.guild_id}:{event.user_id}:{event.message_id}"
+        return hashlib.md5(data.encode()).hexdigest()[:12]
+
+    async def send_toxic_alert(self, event: "ToxicContentEvent") -> None:
+        """
+        Send a toxic content alert with inline buttons.
+
+        Args:
+            event: The toxic content event to report
+        """
+        if not self._app or not self.config.admin_chat_id:
+            logger.warning("Telegram not configured or not started")
+            return
+
+        event_id = self._generate_event_id(event)
+        self._pending_events[event_id] = event
+
+        severity_emoji = {
+            "low": "⚠️",
+            "medium": "🔶",
+            "high": "🔴",
+        }
+        emoji = severity_emoji.get(
+            str(event.severity) if event.severity else "low", "⚠️"
+        )
+
+        message = (
+            f"{emoji} **유해 콘텐츠 감지**\n\n"
+            f"**사용자**: {event.user_name} (`{event.user_id}`)\n"
+            f"**채널 ID**: `{event.channel_id}`\n"
+            f"**심각도**: {event.severity or 'low'}\n"
+            f"**카테고리**: {event.category or 'unknown'}\n"
+            f"**사유**: {event.reason or 'N/A'}\n\n"
+            f"**메시지**:\n```\n{event.message_content[:500]}{'...' if len(event.message_content) > 500 else ''}\n```"
+        )
+
+        keyboard = [
+            [
+                InlineKeyboardButton("🚫 즉시 차단", callback_data=f"ban:{event_id}"),
+                InlineKeyboardButton("✓ 무시", callback_data=f"dismiss:{event_id}"),
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        try:
+            await self._app.bot.send_message(
+                chat_id=self.config.admin_chat_id,
+                text=message,
+                reply_markup=reply_markup,
+                parse_mode="Markdown",
+            )
+            logger.info(f"Sent toxic alert to Telegram for user {event.user_id}")
+        except Exception as e:
+            logger.error(f"Failed to send Telegram alert: {e}")
+
+    async def send(self, msg: OutboundMessage) -> None:
+        """
+        Send a message to Telegram (generic send method for bus compatibility).
+
+        Args:
+            msg: Outbound message with chat_id as Telegram chat ID
+        """
+        if not self._app:
+            return
+
+        try:
+            chat_id = int(msg.chat_id)
+            await self._app.bot.send_message(
+                chat_id=chat_id,
+                text=msg.content,
+                parse_mode="Markdown",
+            )
+            logger.debug(f"Sent message to Telegram chat {chat_id}")
+        except Exception as e:
+            logger.error(f"Failed to send Telegram message: {e}")
