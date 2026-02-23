@@ -17,6 +17,8 @@ from tokamak.session import Session, SessionManager
 
 if TYPE_CHECKING:
     from tokamak.admin.handler import AdminHandler
+    from tokamak.moderation.detector import ToxicityDetector
+    from tokamak.moderation.types import ToxicContentEvent
 
 
 def format_discord_message(content: str) -> str:
@@ -126,6 +128,8 @@ class DiscordChannel(BaseChannel):
         session_manager: SessionManager,
         on_message_callback: Callable[[Session, str], Awaitable[str | None]] | None = None,
         admin_handler: "AdminHandler | None" = None,
+        on_toxic_content: Callable[["ToxicContentEvent"], Awaitable[None]] | None = None,
+        moderation_detector: "ToxicityDetector | None" = None,
     ):
         """
         Initialize Discord channel.
@@ -136,12 +140,16 @@ class DiscordChannel(BaseChannel):
             session_manager: Session manager for conversation history
             on_message_callback: Async callback(session, content) -> response
             admin_handler: Handler for admin DM commands
+            on_toxic_content: Async callback for toxic content detection
+            moderation_detector: Toxicity detector instance
         """
         super().__init__(config, bus)
         self.config: DiscordConfig = config
         self.session_manager = session_manager
         self.on_message_callback = on_message_callback
         self.admin_handler = admin_handler
+        self.on_toxic_content = on_toxic_content
+        self.moderation_detector = moderation_detector
 
         # Active conversation tracking: {user_key: last_message_timestamp}
         self._active_conversations: dict[str, float] = {}
@@ -294,6 +302,10 @@ class DiscordChannel(BaseChannel):
             message_id=str(message.id),
         )
 
+        # Check for toxic content if moderation is enabled
+        if self.on_toxic_content and self.moderation_detector:
+            await self._check_toxic_content(message, content)
+
         # Check if we should respond (skip if session is ended)
         if session.is_ended:
             logger.debug(f"Session ended for {user_key}, not responding")
@@ -418,3 +430,53 @@ class DiscordChannel(BaseChannel):
             return
 
         await self.admin_handler.handle(message)
+
+    async def _check_toxic_content(self, message: Message, content: str) -> None:
+        """Check message for toxic content and notify if detected."""
+        if not self.moderation_detector or not self.on_toxic_content:
+            return
+
+        try:
+            result = await self.moderation_detector.detect(content)
+
+            if result.is_toxic:
+                from tokamak.moderation.types import ToxicContentEvent
+
+                event = ToxicContentEvent(
+                    guild_id=message.guild.id,
+                    channel_id=message.channel.id,
+                    user_id=message.author.id,
+                    user_name=message.author.display_name,
+                    message_id=message.id,
+                    message_content=content,
+                    result=result,
+                )
+                await self.on_toxic_content(event)
+
+        except Exception as e:
+            logger.error(f"Error checking toxic content: {e}")
+
+    async def _check_toxic_content(self, message: Message, content: str) -> None:
+        """Check message for toxic content and notify if detected."""
+        if not self.moderation_detector or not self.on_toxic_content:
+            return
+
+        try:
+            result = await self.moderation_detector.detect(content)
+
+            if result.is_toxic:
+                from tokamak.moderation.types import ToxicContentEvent
+
+                event = ToxicContentEvent(
+                    guild_id=message.guild.id,
+                    channel_id=message.channel.id,
+                    user_id=message.author.id,
+                    user_name=message.author.display_name,
+                    message_id=message.id,
+                    message_content=content,
+                    result=result,
+                )
+                await self.on_toxic_content(event)
+
+        except Exception as e:
+            logger.error(f"Error checking toxic content: {e}")
