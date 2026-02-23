@@ -6,13 +6,17 @@ from pathlib import Path
 from loguru import logger
 
 from tokamak.admin import AdminHandler
+from tokamak.admin.ban_handler import BanHandler
+from tokamak.admin.notifier import AdminNotifier
 from tokamak.agent import AgentLoop
 from tokamak.agent.tools import InternalStateTool, ToolRegistry, WebFetchTool
 from tokamak.bus import MessageBus
 from tokamak.channels import DiscordChannel
+from tokamak.channels.telegram import TelegramChannel
 from tokamak.config import Config
 from tokamak.cron.service import CronService
 from tokamak.cron.types import CronSchedule
+from tokamak.moderation import ToxicContentEvent, ToxicityDetector
 from tokamak.news import NewsFeedService, NewsFetcher, NewsSummarizer
 from tokamak.providers import OpenAICompatibleProvider
 from tokamak.session import Session, SessionManager
@@ -46,13 +50,46 @@ class TokamakApp:
         if config.admin.admin_channel_ids:
             self.admin_handler = AdminHandler(config.admin, self)
 
+        # Moderation system
+        self.moderation_detector: ToxicityDetector | None = None
+        self.telegram_channel: TelegramChannel | None = None
+        self.admin_notifier: AdminNotifier | None = None
+        self.ban_handler: BanHandler | None = None
+
+        if config.moderation.enabled:
+            self.moderation_detector = ToxicityDetector(
+                provider=self.provider,
+                config=config.moderation,
+            )
+
         self.discord = DiscordChannel(
             config=config.discord,
             bus=self.bus,
             session_manager=self.session_manager,
             on_message_callback=self._handle_message,
             admin_handler=self.admin_handler,
+            moderation_detector=self.moderation_detector,
+            on_toxic_content=self._handle_toxic_content if config.moderation.enabled else None,
         )
+
+        if config.moderation.enabled:
+            self.ban_handler = BanHandler(
+                discord_client=self.discord.client,
+                config=config.moderation,
+            )
+
+            if config.telegram.enabled:
+                self.telegram_channel = TelegramChannel(
+                    config=config.telegram,
+                    bus=self.bus,
+                    on_ban_callback=self._handle_ban_request,
+                    on_dismiss_callback=self._handle_dismiss_request,
+                )
+
+            self.admin_notifier = AdminNotifier(
+                config=config,
+                telegram_channel=self.telegram_channel,
+            )
 
         self._running = False
         self.cron: CronService | None = None
@@ -133,6 +170,22 @@ class TokamakApp:
             max_retries=1,
         )
 
+    async def _handle_toxic_content(self, event: ToxicContentEvent) -> None:
+        """Handle toxic content detection event."""
+        if self.admin_notifier:
+            await self.admin_notifier.notify_toxic_content(event)
+
+    async def _handle_ban_request(self, event: ToxicContentEvent) -> None:
+        """Handle ban request from Telegram callback."""
+        if self.ban_handler:
+            success = await self.ban_handler.execute_ban(event)
+            if self.admin_notifier:
+                await self.admin_notifier.notify_ban_executed(event, success)
+
+    async def _handle_dismiss_request(self, event: ToxicContentEvent) -> None:
+        """Handle dismiss request from Telegram callback."""
+        logger.info(f"Toxic content alert dismissed for user {event.user_id}")
+
     async def _periodic_cleanup(self, interval_seconds: int = 600) -> None:
         """Periodically clean up stale sessions and expired conversations."""
         while self._running:
@@ -157,6 +210,9 @@ class TokamakApp:
         cleanup_task = asyncio.create_task(self._periodic_cleanup())
 
         self.bus.subscribe_outbound("discord", self.discord.send)
+
+        if self.telegram_channel:
+            await self.telegram_channel.start()
 
         if self.news_feed:
             news_feed = self.news_feed
@@ -192,6 +248,9 @@ class TokamakApp:
 
         if self.cron:
             self.cron.stop()
+
+        if self.telegram_channel:
+            await self.telegram_channel.stop()
 
         self.bus.stop()
         await self.discord.stop()
