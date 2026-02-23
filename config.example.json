@@ -32,5 +32,17 @@
   "admin": {
     "admin_channel_ids": [987654321],
     "command_prefix": "!"
+  },
+  "telegram": {
+    "enabled": false,
+    "bot_token": "",
+    "admin_chat_id": null,
+    "webhook_url": null,
+    "webhook_port": 8443
+  },
+  "moderation": {
+    "enabled": false,
+    "toxicity_threshold": 0.7,
+    "ban_duration_minutes": 60
   }
 }
