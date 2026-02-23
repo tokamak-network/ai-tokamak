@@ -8,7 +8,6 @@ from tokamak.config.schema import ModerationConfig
 from tokamak.moderation.types import ModerationResult, ModerationSeverity
 from tokamak.providers.base import LLMProvider
 
-
 TOXICITY_PROMPT = """다음 메시지가 유해한지 분석하세요. 한국어 욕설, 비방, 혐오 표현을 감지합니다.
 
 메시지: {message}

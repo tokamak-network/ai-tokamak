@@ -137,13 +137,13 @@ class TelegramChannel(BaseChannel):
 
         if action == "ban":
             await query.edit_message_text(
-                f"✅ 사용자 차단 처리 중...\n" f"사용자: {event.user_name} ({event.user_id})"
+                f"✅ 사용자 차단 처리 중...\n사용자: {event.user_name} ({event.user_id})"
             )
             if self.on_ban_callback:
                 try:
                     await self.on_ban_callback(event)
                     await query.edit_message_text(
-                        f"✅ 차단 완료\n" f"사용자: {event.user_name} ({event.user_id})"
+                        f"✅ 차단 완료\n사용자: {event.user_name} ({event.user_id})"
                     )
                 except Exception as e:
                     logger.error(f"Ban callback error: {e}")
@@ -151,7 +151,7 @@ class TelegramChannel(BaseChannel):
 
         elif action == "dismiss":
             await query.edit_message_text(
-                f"📋 요청이 무시되었습니다.\n" f"사용자: {event.user_name} ({event.user_id})"
+                f"📋 요청이 무시되었습니다.\n사용자: {event.user_name} ({event.user_id})"
             )
             if self.on_dismiss_callback:
                 try:
@@ -183,9 +183,7 @@ class TelegramChannel(BaseChannel):
             "medium": "🔶",
             "high": "🔴",
         }
-        emoji = severity_emoji.get(
-            str(event.severity) if event.severity else "low", "⚠️"
-        )
+        emoji = severity_emoji.get(str(event.severity) if event.severity else "low", "⚠️")
 
         message = (
             f"{emoji} **유해 콘텐츠 감지**\n\n"

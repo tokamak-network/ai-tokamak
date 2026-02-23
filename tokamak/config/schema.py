@@ -96,7 +96,9 @@ class TelegramConfig(BaseModel):
 
     enabled: bool = Field(default=False, description="Enable Telegram notifications")
     bot_token: str = Field(default="", description="Telegram bot token")
-    admin_chat_id: int | None = Field(default=None, description="Telegram chat ID for admin notifications")
+    admin_chat_id: int | None = Field(
+        default=None, description="Telegram chat ID for admin notifications"
+    )
     webhook_url: str | None = Field(default=None, description="Webhook URL for Telegram callbacks")
     webhook_port: int = Field(default=8443, description="Port for webhook server")
 
@@ -108,7 +110,9 @@ class ModerationConfig(BaseModel):
     toxicity_threshold: float = Field(
         default=0.7, ge=0.0, le=1.0, description="Threshold for toxicity detection (0-1)"
     )
-    ban_duration_minutes: int = Field(default=60, description="Default ban duration in minutes (0 = permanent)")
+    ban_duration_minutes: int = Field(
+        default=60, description="Default ban duration in minutes (0 = permanent)"
+    )
 
 
 class Config(BaseModel):

@@ -1,7 +1,6 @@
 """Ban handler for executing Discord bans from Telegram callbacks."""
 
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING
 
 import discord
 from loguru import logger
@@ -70,8 +69,7 @@ class BanHandler:
                     reason=f"유해 콘텐츠: {event.category or 'unknown'} - {event.reason}",
                 )
                 logger.info(
-                    f"Timed out user {event.user_name} ({event.user_id}) "
-                    f"for {ban_duration} minutes"
+                    f"Timed out user {event.user_name} ({event.user_id}) for {ban_duration} minutes"
                 )
 
             return True

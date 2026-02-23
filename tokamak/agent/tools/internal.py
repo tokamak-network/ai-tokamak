@@ -90,11 +90,13 @@ class InternalStateTool(Tool):
         for key, session in sessions:
             msg_count = len(session.messages)
             status = "ended" if session.is_ended else "active"
-            session_list.append({
-                "key": key,
-                "message_count": msg_count,
-                "status": status,
-            })
+            session_list.append(
+                {
+                    "key": key,
+                    "message_count": msg_count,
+                    "status": status,
+                }
+            )
 
         return json.dumps({"success": True, "sessions": session_list}, ensure_ascii=False)
 

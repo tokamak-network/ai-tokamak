@@ -63,12 +63,14 @@ class SkillsLoader:
                     skill_file = skill_dir / "SKILL.md"
                     if skill_file.exists():
                         meta = self._parse_frontmatter(skill_file)
-                        skills.append({
-                            "name": meta.get("name", skill_dir.name),
-                            "description": meta.get("description", skill_dir.name),
-                            "path": str(skill_file),
-                            "source": "workspace",
-                        })
+                        skills.append(
+                            {
+                                "name": meta.get("name", skill_dir.name),
+                                "description": meta.get("description", skill_dir.name),
+                                "path": str(skill_file),
+                                "source": "workspace",
+                            }
+                        )
 
         # Built-in skills
         if self.builtin_skills and self.builtin_skills.exists():
@@ -80,12 +82,14 @@ class SkillsLoader:
                         skill_name = meta.get("name", skill_dir.name)
                         # Don't override workspace skills
                         if not any(s["name"] == skill_name for s in skills):
-                            skills.append({
-                                "name": skill_name,
-                                "description": meta.get("description", skill_dir.name),
-                                "path": str(skill_file),
-                                "source": "builtin",
-                            })
+                            skills.append(
+                                {
+                                    "name": skill_name,
+                                    "description": meta.get("description", skill_dir.name),
+                                    "path": str(skill_file),
+                                    "source": "builtin",
+                                }
+                            )
 
         # Filter by requirements
         if filter_unavailable:
@@ -271,7 +275,7 @@ class SkillsLoader:
         if content.startswith("---"):
             match = re.match(r"^---\n.*?\n---\n", content, re.DOTALL)
             if match:
-                return content[match.end():].strip()
+                return content[match.end() :].strip()
         return content
 
     def _parse_nanobot_metadata(self, raw: str) -> dict:
