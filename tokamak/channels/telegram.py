@@ -1,6 +1,8 @@
 """Telegram channel implementation with inline buttons for admin actions."""
 
 import hashlib
+import json
+from pathlib import Path
 from typing import TYPE_CHECKING, Awaitable, Callable
 
 from loguru import logger
@@ -38,6 +40,7 @@ class TelegramChannel(BaseChannel):
         bus: MessageBus,
         on_ban_callback: Callable[["ToxicContentEvent"], Awaitable[None]] | None = None,
         on_dismiss_callback: Callable[["ToxicContentEvent"], Awaitable[None]] | None = None,
+        store_path: Path | None = None,
     ):
         """
         Initialize Telegram channel.
@@ -47,6 +50,7 @@ class TelegramChannel(BaseChannel):
             bus: Message bus for communication
             on_ban_callback: Async callback(event: ToxicContentEvent) for ban action
             on_dismiss_callback: Async callback(event: ToxicContentEvent) for dismiss action
+            store_path: Path for persisting pending events
         """
         if not TELEGRAM_AVAILABLE:
             raise RuntimeError(
@@ -57,9 +61,11 @@ class TelegramChannel(BaseChannel):
         self.config: TelegramConfig = config
         self.on_ban_callback = on_ban_callback
         self.on_dismiss_callback = on_dismiss_callback
+        self.store_path = store_path
 
         self._app: Application | None = None
-        self._pending_events: dict[str, "ToxicContentEvent"] = {}  # callback_id -> event
+        self._pending_events: dict[str, "ToxicContentEvent"] = {}
+        self._load_pending_events()
 
     async def start(self) -> None:
         """Start the Telegram bot with webhook."""
@@ -123,13 +129,12 @@ class TelegramChannel(BaseChannel):
         if not callback_data:
             return
 
-        # Parse callback: "ban:123456" or "dismiss:123456"
         parts = callback_data.split(":", 1)
         if len(parts) != 2:
             return
 
         action, event_id = parts
-        event = self._pending_events.pop(event_id, None)
+        event = self._pending_events.get(event_id, None)
 
         if not event:
             await query.edit_message_text("⚠️ 이미 처리된 요청입니다.")
@@ -142,14 +147,35 @@ class TelegramChannel(BaseChannel):
             if self.on_ban_callback:
                 try:
                     await self.on_ban_callback(event)
-                    await query.edit_message_text(
-                        f"✅ 차단 완료\n사용자: {event.user_name} ({event.user_id})"
+
+                    cancelled_count = self._cancel_pending_events_for_user(
+                        guild_id=event.guild_id,
+                        user_id=event.user_id,
+                        exclude_event_id=event_id,
                     )
+
+                    self._pending_events.pop(event_id, None)
+                    self._save_pending_events()
+
+                    msg = f"✅ 차단 완료\n사용자: {event.user_name} ({event.user_id})"
+                    if cancelled_count > 0:
+                        msg += f"\n📋 다른 {cancelled_count}개의 대기 중인 알림이 취소되었습니다."
+                    await query.edit_message_text(msg)
+
                 except Exception as e:
                     logger.error(f"Ban callback error: {e}")
-                    await query.edit_message_text(f"❌ 차단 실패: {e}")
+                    await query.edit_message_text(
+                        f"❌ 차단 실패: {e}\n⚠️ 이벤트가 대기열에 유지됩니다. 다시 시도해주세요."
+                    )
+            else:
+                self._pending_events.pop(event_id, None)
+                self._save_pending_events()
+                await query.edit_message_text("⚠️ 차단 콜백이 설정되지 않았습니다.")
 
         elif action == "dismiss":
+            self._pending_events.pop(event_id, None)
+            self._save_pending_events()
+
             await query.edit_message_text(
                 f"📋 요청이 무시되었습니다.\n사용자: {event.user_name} ({event.user_id})"
             )
@@ -159,10 +185,69 @@ class TelegramChannel(BaseChannel):
                 except Exception as e:
                     logger.error(f"Dismiss callback error: {e}")
 
+    def _cancel_pending_events_for_user(
+        self,
+        guild_id: int,
+        user_id: int,
+        exclude_event_id: str | None = None,
+    ) -> int:
+        """
+        Cancel all pending events for a specific user in a guild.
+
+        Args:
+            guild_id: The guild ID
+            user_id: The user ID
+            exclude_event_id: Event ID to exclude from cancellation
+
+        Returns:
+            Number of events cancelled
+        """
+        keys_to_remove = [
+            eid
+            for eid, evt in self._pending_events.items()
+            if evt.guild_id == guild_id and evt.user_id == user_id and eid != exclude_event_id
+        ]
+
+        for key in keys_to_remove:
+            del self._pending_events[key]
+
+        return len(keys_to_remove)
+
     def _generate_event_id(self, event: "ToxicContentEvent") -> str:
         """Generate unique ID for callback tracking."""
         data = f"{event.guild_id}:{event.user_id}:{event.message_id}"
         return hashlib.md5(data.encode()).hexdigest()[:12]
+
+    def _load_pending_events(self) -> None:
+        """Load pending events from disk."""
+        if not self.store_path or not self.store_path.exists():
+            return
+
+        try:
+            from tokamak.moderation.types import ToxicContentEvent
+
+            data = json.loads(self.store_path.read_text())
+            for event_id, event_data in data.get("pending_events", {}).items():
+                self._pending_events[event_id] = ToxicContentEvent.from_dict(event_data)
+            if self._pending_events:
+                logger.info(f"Loaded {len(self._pending_events)} pending moderation events")
+        except Exception as e:
+            logger.warning(f"Failed to load pending events: {e}")
+
+    def _save_pending_events(self) -> None:
+        """Save pending events to disk."""
+        if not self.store_path:
+            return
+
+        self.store_path.parent.mkdir(parents=True, exist_ok=True)
+
+        data = {
+            "pending_events": {
+                event_id: event.to_dict() for event_id, event in self._pending_events.items()
+            }
+        }
+
+        self.store_path.write_text(json.dumps(data, ensure_ascii=False, indent=2))
 
     async def send_toxic_alert(self, event: "ToxicContentEvent") -> None:
         """
@@ -176,7 +261,16 @@ class TelegramChannel(BaseChannel):
             return
 
         event_id = self._generate_event_id(event)
+
+        if event_id in self._pending_events:
+            logger.warning(
+                f"Event {event_id} already pending for user {event.user_id}, "
+                "skipping duplicate alert"
+            )
+            return
+
         self._pending_events[event_id] = event
+        self._save_pending_events()
 
         severity_emoji = {
             "low": "⚠️",

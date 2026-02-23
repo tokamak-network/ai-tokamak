@@ -251,27 +251,25 @@ class DiscordChannel(BaseChannel):
 
     async def _on_message(self, message: Message) -> None:
         """Handle incoming Discord message."""
-        # Ignore bot's own messages
+        if not self._running:
+            return
+
         if message.author == self._client.user:
             return
 
-        # Ignore DMs
         if not message.guild:
             return
 
-        # Check guild allowlist
         if not self._is_allowed_guild(message.guild.id):
             return
 
         user_id = message.author.id
         content = message.content.strip()
 
-        # Check for admin command in designated channel
         if self._is_admin_channel(message.channel.id):
             await self._handle_admin_command(message, content)
             return
 
-        # Check if channel is monitored
         if not self._is_monitored_channel(message.channel.id):
             return
 
@@ -280,21 +278,16 @@ class DiscordChannel(BaseChannel):
         user_key = self._get_user_key(guild_id, user_id)
         session_key = self._get_session_key(guild_id, user_id)
 
-        # Skip empty messages
         if not content:
             return
 
-        # Get or create session
         session = self.session_manager.get_or_create(session_key)
 
-        # Check if session was ended
         is_mention = self._is_bot_mentioned(message)
         if session.is_ended and is_mention:
-            # Reactivate session for new conversation
             session.reactivate()
             logger.info(f"Reactivating session for {user_key}")
 
-        # Always save user message to session (for context)
         session.add_message(
             role="user",
             content=content,
@@ -302,42 +295,35 @@ class DiscordChannel(BaseChannel):
             message_id=str(message.id),
         )
 
-        # Check for toxic content if moderation is enabled
-        if self.on_toxic_content and self.moderation_detector:
-            await self._check_toxic_content(message, content)
+        if user_key not in self._user_locks:
+            self._user_locks[user_key] = asyncio.Lock()
+        lock = self._user_locks[user_key]
 
-        # Check if we should respond (skip if session is ended)
-        if session.is_ended:
-            logger.debug(f"Session ended for {user_key}, not responding")
-            return
+        async with lock:
+            if self.on_toxic_content and self.moderation_detector:
+                await self._check_toxic_content(message, content)
 
-        if not self.should_respond(user_key, is_mention):
-            logger.debug(f"Not responding to {user_key}")
-            return
+            if session.is_ended:
+                logger.debug(f"Session ended for {user_key}, not responding")
+                return
 
-        logger.info(f"Responding to {message.author.display_name} in {message.channel}")
+            if not self.should_respond(user_key, is_mention):
+                logger.debug(f"Not responding to {user_key}")
+                return
 
-        # Call the message callback if set
-        if self.on_message_callback:
-            # Get or create per-user lock
-            if user_key not in self._user_locks:
-                self._user_locks[user_key] = asyncio.Lock()
-            lock = self._user_locks[user_key]
+            logger.info(f"Responding to {message.author.display_name} in {message.channel}")
 
-            async with lock:
+            if self.on_message_callback:
                 try:
                     response = await self.on_message_callback(session, content)
                     if response:
-                        # Save bot response to session
                         session.add_message(role="assistant", content=response)
-                        # Format and send response, splitting if over Discord limit
                         formatted_response = format_discord_message(response)
                         chunks = split_message(formatted_response)
                         await message.reply(chunks[0])
                         for chunk in chunks[1:]:
                             await message.channel.send(chunk)
 
-                        # If session was ended, remove from active conversations
                         if session.is_ended:
                             if user_key in self._active_conversations:
                                 del self._active_conversations[user_key]
@@ -352,19 +338,18 @@ class DiscordChannel(BaseChannel):
                         )
                     except Exception:
                         pass
-        else:
-            # Fallback: publish to message bus
-            await self._handle_message(
-                sender_id=str(user_id),
-                chat_id=str(message.channel.id),
-                content=content,
-                metadata={
-                    "guild_id": str(guild_id),
-                    "author_name": message.author.display_name,
-                    "message_id": str(message.id),
-                    "session_key": session_key,
-                },
-            )
+            else:
+                await self._handle_message(
+                    sender_id=str(user_id),
+                    chat_id=str(message.channel.id),
+                    content=content,
+                    metadata={
+                        "guild_id": str(guild_id),
+                        "author_name": message.author.display_name,
+                        "message_id": str(message.id),
+                        "session_key": session_key,
+                    },
+                )
 
     async def send(self, msg: OutboundMessage) -> None:
         """
@@ -430,31 +415,6 @@ class DiscordChannel(BaseChannel):
             return
 
         await self.admin_handler.handle(message)
-
-    async def _check_toxic_content(self, message: Message, content: str) -> None:
-        """Check message for toxic content and notify if detected."""
-        if not self.moderation_detector or not self.on_toxic_content:
-            return
-
-        try:
-            result = await self.moderation_detector.detect(content)
-
-            if result.is_toxic:
-                from tokamak.moderation.types import ToxicContentEvent
-
-                event = ToxicContentEvent(
-                    guild_id=message.guild.id,
-                    channel_id=message.channel.id,
-                    user_id=message.author.id,
-                    user_name=message.author.display_name,
-                    message_id=message.id,
-                    message_content=content,
-                    result=result,
-                )
-                await self.on_toxic_content(event)
-
-        except Exception as e:
-            logger.error(f"Error checking toxic content: {e}")
 
     async def _check_toxic_content(self, message: Message, content: str) -> None:
         """Check message for toxic content and notify if detected."""

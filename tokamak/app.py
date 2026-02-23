@@ -84,6 +84,7 @@ class TokamakApp:
                     bus=self.bus,
                     on_ban_callback=self._handle_ban_request,
                     on_dismiss_callback=self._handle_dismiss_request,
+                    store_path=self.data_dir / "moderation_events.json",
                 )
 
             self.admin_notifier = AdminNotifier(

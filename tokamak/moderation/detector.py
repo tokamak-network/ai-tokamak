@@ -8,11 +8,11 @@ from tokamak.config.schema import ModerationConfig
 from tokamak.moderation.types import ModerationResult, ModerationSeverity
 from tokamak.providers.base import LLMProvider
 
-TOXICITY_PROMPT = """다음 메시지가 유해한지 분석하세요. 한국어 욕설, 비방, 혐오 표현을 감지합니다.
+TOXICITY_PROMPT = """Analyze the following message for toxic content. Detect profanity, defamation, threats, and harassment in both Korean and English.
 
-메시지: {message}
+Message: {message}
 
-분석 결과를 다음 JSON 형식으로만 응답하세요:
+Respond ONLY in the following JSON format:
 {{
     "is_toxic": true/false,
     "severity": "low"/"medium"/"high"/null,
@@ -21,13 +21,13 @@ TOXICITY_PROMPT = """다음 메시지가 유해한지 분석하세요. 한국어
     "reason": "판단 이유 (한국어)"
 }}
 
-기준:
-- low: 가벼운 욕설, 비속어
-- medium: 모욕적 표현, 중간 수준 비방
-- high: 심한 욕설, 명확한 비방, 위협, 혐오 발언
+Criteria:
+- low: Mild profanity, slang (가벼운 욕설, 비속어)
+- medium: Offensive language, moderate insults (모욕적 표현, 중간 수준 비방)
+- high: Severe profanity, clear defamation, threats, hate speech (심한 욕설, 명확한 비방, 위협, 혐오 발언)
 
-is_toxic가 false면 severity와 category는 null이어야 합니다.
-JSON 외의 다른 텍스트는 출력하지 마세요."""
+If is_toxic is false, severity and category must be null.
+Do not output any text other than JSON."""
 
 
 class ToxicityDetector:
@@ -80,11 +80,22 @@ class ToxicityDetector:
                 except ValueError:
                     pass
 
+            is_toxic = result_data.get("is_toxic", False)
+            confidence = result_data.get("confidence", 0.0)
+
+            # Apply threshold filter
+            if is_toxic and confidence < self.config.toxicity_threshold:
+                logger.debug(
+                    f"Toxicity below threshold: confidence={confidence:.2f}, "
+                    f"threshold={self.config.toxicity_threshold}"
+                )
+                is_toxic = False
+
             return ModerationResult(
-                is_toxic=result_data.get("is_toxic", False),
-                severity=severity,
-                category=result_data.get("category"),
-                confidence=result_data.get("confidence", 0.0),
+                is_toxic=is_toxic,
+                severity=severity if is_toxic else None,
+                category=result_data.get("category") if is_toxic else None,
+                confidence=confidence,
                 reason=result_data.get("reason"),
             )
 
